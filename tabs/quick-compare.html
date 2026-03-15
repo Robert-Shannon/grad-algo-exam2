@@ -1,0 +1,47 @@
+<h1>Quick Compare</h1>
+<p class="subtitle">Side-by-side algorithm comparison tables and key facts.</p>
+
+<div class="section-title">Algorithm Comparison Table</div>
+<div class="table-scroll"><table>
+  <tr><th>Abbreviation</th><th>Full Algorithm Name</th><th>Type</th><th>Edge Weights</th><th>Graph Direction</th><th>Handles Negative?</th><th>Output Variables</th><th>Runtime</th></tr>
+  <tr><td>BFS</td><td>Breadth-First Search</td><td>Traversal</td><td>Unweighted</td><td>Both</td><td>N/A</td><td>dist[], prev[]</td><td>O(n+m)</td></tr>
+  <tr><td>DFS</td><td>Depth-First Search</td><td>Traversal</td><td>Ignored</td><td>Both</td><td>N/A</td><td>ccnum[], pre[], post[], prev[]</td><td>O(n+m)</td></tr>
+  <tr><td>Topo Sort</td><td>Topological Sort</td><td>Ordering</td><td>N/A</td><td>Directed DAG only</td><td>N/A</td><td>order[]</td><td>O(n+m)</td></tr>
+  <tr><td>SCC</td><td>Strongly Connected Components</td><td>Decomposition</td><td>N/A</td><td>Directed</td><td>N/A</td><td>G_SCC (DAG metagraph)</td><td>O(n+m)</td></tr>
+  <tr><td>Dijkstra's</td><td>Dijkstra's Algorithm</td><td>Shortest Path</td><td>Non-negative ≥ 0</td><td>Both</td><td style="color:var(--red)">❌ FAILS</td><td>dist[], prev[]</td><td>O((n+m) log n)</td></tr>
+  <tr><td>Bellman-Ford</td><td>Bellman-Ford</td><td>Shortest Path</td><td>Any (incl. negative)</td><td>Both</td><td style="color:var(--green)">✅ Works</td><td>dist[], prev[], iter[][]</td><td>O(nm)</td></tr>
+  <tr><td>Floyd-Warshall</td><td>Floyd-Warshall</td><td>All-Pairs SP</td><td>Any (incl. negative)</td><td>Both</td><td style="color:var(--green)">✅ Works</td><td>dist[][], iter[][][]</td><td>O(n³)</td></tr>
+  <tr><td>Kruskal's</td><td>Kruskal's Algorithm</td><td>Spanning Tree</td><td>Required</td><td>Undirected</td><td>Negate for max ST</td><td>edges[]</td><td>O(m log n)</td></tr>
+  <tr><td>Prim's</td><td>Prim's Algorithm</td><td>Spanning Tree</td><td>Required</td><td>Undirected</td><td>Negate for max ST</td><td>prev[]</td><td>O(m log n)</td></tr>
+  <tr><td>Ford-Fulkerson</td><td>Ford-Fulkerson</td><td>Max Flow</td><td>Integer capacities</td><td>Directed</td><td>N/A</td><td>flow[], C</td><td>O(mC)</td></tr>
+  <tr><td>Edmonds-Karp</td><td>Edmonds-Karp</td><td>Max Flow</td><td>Positive capacities</td><td>Directed</td><td>N/A</td><td>flow[], C</td><td>O(nm²)</td></tr>
+  <tr><td>2-SAT</td><td>2-SAT</td><td>Satisfiability</td><td>N/A</td><td>Directed (implication graph)</td><td>N/A</td><td>assignments[]</td><td>O(n+m)</td></tr>
+</table></div>
+
+<div class="section-title">DFS Pre/Post Number Rules</div>
+<div class="table-scroll"><table>
+  <tr><th>Rule</th><th>Meaning</th></tr>
+  <tr><td>post[u] > post[v] for every u→v in DAG</td><td>Foundation of topological sort</td></tr>
+  <tr><td>post[u] < post[v] for edge u→v</td><td>Back edge → CYCLE exists</td></tr>
+  <tr><td>[pre[v],post[v]] inside [pre[u],post[u]]</td><td>v is descendant of u in DFS tree</td></tr>
+  <tr><td>Highest post[] value in any DFS</td><td>That node is in a source SCC</td></tr>
+  <tr><td>Clock counts from 1 to 2n total</td><td>n pre + n post timestamps</td></tr>
+</table></div>
+
+<div class="section-title">Strongly Connected Components Output</div>
+<div class="table-scroll"><table>
+  <tr><th>Property</th><th>Detail</th></tr>
+  <tr><td>G_SCC is ALWAYS a DAG</td><td>Apply topo sort or DP to it directly</td></tr>
+  <tr><td>V_SCC sorted SINK→SOURCE</td><td>V_SCC[1] = a sink SCC</td></tr>
+  <tr><td>ccnum[v] from final DFS</td><td>Which SCC vertex v belongs to</td></tr>
+  <tr><td>Source SCC = no incoming in G_SCC</td><td>Sink SCC = empty adj list in G_SCC</td></tr>
+</table></div>
+
+<div class="section-title">Spanning Tree Key Facts</div>
+<div class="table-scroll"><table>
+  <tr><th>Fact</th><th>Detail</th></tr>
+  <tr><td>Spanning tree includes ALL n vertices</td><td>s and t always in the tree</td></tr>
+  <tr><td>Exactly n-1 edges, no cycles</td><td>Tree is always connected</td></tr>
+  <tr><td>Negate weights → max spanning tree</td><td>Run Kruskal's on -w(e)</td></tr>
+  <tr><td>s→t path in max ST = widest path</td><td>Theorem: provably optimal bottleneck</td></tr>
+</table></div>

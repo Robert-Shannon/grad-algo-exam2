@@ -1,0 +1,446 @@
+<h1>Black Box Algorithm Reference</h1>
+<p class="subtitle">Every algorithm is a black box. You pass in inputs. You use outputs. You CANNOT modify internal logic.</p>
+
+<!-- DFS -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">DFS — Depth-First Search</div>
+    <div class="algo-meta"><span>Traversal</span><span>O(n + m)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Explores as deep as possible before backtracking. Produces timestamps and component IDs.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple graph in adjacency list format</li>
+      <li>Starting vertex — optional. If not provided, DFS runs from all vertices automatically.</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>ccnum[]</code> — connected component number for each vertex (reliable <strong>ONLY</strong> on undirected graphs)</li>
+      <li><code>prev[]</code> — parent vertex in DFS tree (nil for starting vertex or unreachable vertices)</li>
+      <li><code>pre[]</code> — pre-visit timestamp (clock value when DFS <strong>ENTERED</strong> this vertex)</li>
+      <li><code>post[]</code> — post-visit timestamp (clock value when DFS <strong>FINISHED</strong> this vertex and ALL its descendants)</li>
+      <li>🔒 <code>visited[]</code> — internal tracking only. NOT returned. Always all true when DFS completes.</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Find connected components in undirected graph (group by ccnum[])</li>
+      <li>Detect cycles — back edge found = cycle exists</li>
+      <li>Compute pre/post timestamps as basis for Topological Sort</li>
+      <li>Compute pre/post timestamps for the SCC algorithm</li>
+      <li>Explore all nodes reachable from a source</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Need shortest path — use BFS (unweighted) or Dijkstra's (weighted)</li>
+      <li>Need weighted distances — DFS has no concept of edge weights</li>
+      <li>Need reliable component IDs on a directed graph — use SCC instead</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li>Back edge rule: edge u→v where post[u] < post[v] means v is still open (ancestor of u) → <strong>CYCLE exists</strong></li>
+      <li>Highest post[] value node = belongs to a <strong>SOURCE SCC</strong> in directed graphs</li>
+      <li>ccnum[] is <strong>UNRELIABLE</strong> on directed graphs — direction creates asymmetry DFS can't capture</li>
+      <li>For any edge u→v in a DAG: post[u] > post[v] ALWAYS (this is the topological sort property)</li>
+      <li>Interval nesting: if [pre[v], post[v]] is completely inside [pre[u], post[u]], then v is a descendant of u</li>
+      <li>Total clock ticks = 2n (n pre-visit ticks + n post-visit ticks, clock counts from 1 to 2n)</li>
+    </ul></div>
+    <div class="section-title" style="font-size:16px;margin-top:20px;">DFS Edge Types in Directed Graphs</div>
+    <div class="table-scroll"><table>
+      <tr><th>Edge Type</th><th>Condition</th><th>Meaning</th></tr>
+      <tr><td><strong>Tree Edge / Forward Edge</strong></td><td>post[u] > post[v]</td><td>u is an ancestor of v in the DFS tree — normal exploration or a forward shortcut</td></tr>
+      <tr><td><strong>Back Edge</strong></td><td>post[u] < post[v] (v is still open when u is found)</td><td>u→v where v is an <strong>ANCESTOR</strong> of u — this creates a <strong>CYCLE</strong>. Only back edges indicate cycles.</td></tr>
+      <tr><td><strong>Cross Edge</strong></td><td>post[u] < post[v] (v is already closed, different subtree)</td><td>v was in a completely different branch that already finished — no cycle</td></tr>
+    </table></div>
+  </div></div>
+</div>
+
+<!-- BFS -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">BFS — Breadth-First Search</div>
+    <div class="algo-meta"><span>Traversal</span><span>O(n + m)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Explores level by level from source. Gives minimum hop count (unweighted shortest path).</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple graph in adjacency list format</li>
+      <li>Starting vertex</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>dist[]</code> — unweighted distance (number of edges) from start to each vertex. ∞ for unreachable vertices.</li>
+      <li><code>prev[]</code> — parent vertex for path reconstruction. nil for starting vertex and unreachable vertices.</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Unweighted shortest path — fewest edges from s to t</li>
+      <li>Reachability check — is t reachable from s?</li>
+      <li>Level-order exploration of a graph</li>
+      <li>Used internally in Edmonds-Karp to find augmenting paths</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Edges have different weights — use Dijkstra's Algorithm</li>
+      <li>Need pre/post timestamps — use Depth-First Search</li>
+      <li>Need distance from multiple sources — add virtual super-source first</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li>dist[t] = minimum number of edges from s to t (hop count, not weighted distance)</li>
+      <li>Follow prev[t] → prev[prev[t]] → ... until nil to reconstruct the shortest path</li>
+      <li>BFS with unit weights = Dijkstra's Algorithm with all weights equal to 1</li>
+      <li>O(n+m) vs Dijkstra's O((n+m)logn) — always prefer BFS when the graph is unweighted</li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- Topo Sort -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">Topo Sort — Topological Sort</div>
+    <div class="algo-meta"><span>Ordering</span><span>O(n + m)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Orders all vertices of a DAG from sources to sinks. Requires NO cycles.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple <strong>DIRECTED ACYCLIC graph</strong> in adjacency list format — graph <strong>MUST</strong> have no cycles</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>order[]</code> — list of ALL vertices in topological order, from sources to sinks. Indexed <strong>NUMERICALLY</strong> (1, 2, 3...), not by vertex name.</li>
+      <li>All Depth-First Search outputs are also available: ccnum[], prev[], pre[], post[]</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Schedule tasks that have prerequisite dependencies</li>
+      <li>Process a DAG from sources to sinks in valid order</li>
+      <li>Find a linear ordering where every edge u→v has u before v</li>
+      <li>Use as a preliminary step for DAG-based dynamic programming</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Graph has any cycle — Topological Sort is <strong>UNDEFINED</strong> and will give wrong results</li>
+      <li>Undirected graphs — topological ordering has no meaning</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li>order[] is indexed numerically 1..n, <strong>NOT</strong> by vertex name — iterate it as a regular array</li>
+      <li>Reverse DFS post-order = topological order (this is how it works internally)</li>
+      <li>Multiple valid topological orderings can exist when some vertices have no dependency between them</li>
+      <li>order[1] is a source (no incoming edges); order[n] is a sink (no outgoing edges)</li>
+      <li>If you try to topologically sort a graph with a cycle, the result will be incorrect — always verify DAG first</li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- SCC -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">SCC — Strongly Connected Components</div>
+    <div class="algo-meta"><span>Decomposition</span><span>O(n + m)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Finds maximal mutual-reachability groups. Output metagraph is ALWAYS a DAG.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple directed graph in adjacency list format</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>G_SCC = (V_SCC, E_SCC)</code> — the metagraph in adjacency list format. This is <strong>ALWAYS a DAG</strong>.</li>
+      <li><strong>CRITICAL:</strong> Metagraph is sorted <strong>SINK→SOURCE</strong> (reverse topological order). V_SCC[1] = a <strong>SINK SCC</strong>.</li>
+      <li>All Depth-First Search outputs from the <strong>FINAL DFS run</strong>: ccnum[], prev[], pre[], post[]</li>
+      <li><code>ccnum[v]</code> = which SCC vertex v belongs to. All vertices with same ccnum are in the same SCC.</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Find all strongly connected components in a directed graph</li>
+      <li>Convert a cyclic directed graph into a DAG (the metagraph) for further processing</li>
+      <li>Find source SCC: the group with no incoming edges in G_SCC</li>
+      <li>Find sink SCC: the group with no outgoing edges in G_SCC — V_SCC[1] is always a sink SCC</li>
+      <li>Map original vertices to their SCC group using ccnum[]</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Undirected graph — use Depth-First Search ccnum[] which is simpler and still O(n+m)</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li>G_SCC is <strong>ALWAYS a DAG</strong> regardless of cycles in the original graph</li>
+      <li>V_SCC[1] = the FIRST vertex in the metagraph = a <strong>SINK SCC</strong> (because sorted reverse topo: sink→source)</li>
+      <li>Source SCC = the SCC with <strong>NO incoming edges</strong> in E_SCC</li>
+      <li>Sink SCC = the SCC with <strong>NO outgoing edges</strong> (empty adjacency list in G_SCC)</li>
+      <li>ccnum[v] from the final DFS maps each original vertex to its SCC number</li>
+      <li>Key insight for the algorithm: highest post[] in G^R (reversed graph) = sink SCC of original G</li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- Dijkstra's -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">Dijkstra's Algorithm</div>
+    <div class="algo-meta"><span>Shortest Path</span><span>O((n + m) log n)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Fastest single-source weighted shortest path. ALL weights must be non-negative.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple graph in adjacency list format</li>
+      <li>Starting vertex s</li>
+      <li>List of <strong>NON-NEGATIVE</strong> edge weights — every weight must be ≥ 0</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>dist[]</code> — weighted shortest distance from s to each vertex. ∞ for unreachable vertices.</li>
+      <li><code>prev[]</code> — parent vertex for path reconstruction. nil for s and unreachable vertices.</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Weighted shortest path with all non-negative edge weights</li>
+      <li>Single-source: find shortest distance from s to all other vertices</li>
+      <li>Fastest option when all weights are non-negative</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li><strong>ANY</strong> edge weight is negative — Dijkstra's <strong>WILL give WRONG answers</strong>. Use Bellman-Ford.</li>
+      <li>Need all-pairs distances — run Floyd-Warshall instead</li>
+      <li>Need the iter[][] iteration table — use Bellman-Ford</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li>prev[t] traces the OPTIMAL shortest path backwards from t to s</li>
+      <li>A vertex's dist[] value is <strong>PERMANENTLY FINAL</strong> once it is dequeued from the priority queue (greedy argument)</li>
+      <li>This greedy finality <strong>breaks</strong> when negative weights exist — a later path through a negative edge could be shorter</li>
+      <li>For widest path: use modified version with max-heap tracking min edge weight instead of sum</li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- Bellman-Ford -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">Bellman-Ford</div>
+    <div class="algo-meta"><span>Shortest Path</span><span>O(nm)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Handles negative edge weights. Detects negative cycles. Slower than Dijkstra's.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple graph in adjacency list format</li>
+      <li>Starting vertex s</li>
+      <li>List of edge weights — can include negative values</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>dist[]</code> — weighted shortest distance from s to each vertex after n-1 iterations. ∞ if unreachable.</li>
+      <li><code>prev[]</code> — parent vertex for path reconstruction. nil for s and unreachable vertices.</li>
+      <li><code>iter[][]</code> — iter[i][v] = distance from s to v after exactly i iterations (table from 0 to n)</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Negative edge weights are present and correct shortest path is needed</li>
+      <li>Detect a negative cycle reachable from source s</li>
+      <li>Need the iter[i][v] table — distances at each intermediate iteration step</li>
+      <li>DP on graphs with an 'at most k edges' constraint (use iter[k][v])</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>All weights positive and speed matters — Dijkstra's is O((n+m)logn) vs Bellman-Ford O(nm)</li>
+      <li>Need all-pairs — Floyd-Warshall is better than running Bellman-Ford n times</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li>Run n iterations total. If iter[n][v] < iter[n-1][v] for any v → <strong>NEGATIVE CYCLE</strong> reachable from s</li>
+      <li>iter[i][v] = D(i,v) = shortest path from s to v using <strong>AT MOST i edges</strong></li>
+      <li>Base case: iter[0][s] = 0, iter[0][v] = ∞ for all v ≠ s</li>
+      <li>Any simple path uses at most n-1 edges, so convergence in n-1 rounds is guaranteed if no negative cycle</li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- Floyd-Warshall -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">Floyd-Warshall</div>
+    <div class="algo-meta"><span>All-Pairs Shortest Path</span><span>O(n³)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Shortest path between every pair of vertices. Handles negative weights. Detects all negative cycles.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple graph in adjacency list format</li>
+      <li>List of edge weights — can include negative values</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>dist[][]</code> — dist[u][v] = shortest weighted path from u to v. ∞ if unreachable.</li>
+      <li><code>iter[][][]</code> — iter[k][u][v] = shortest path from u to v using only vertices {1..k} as intermediates</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Need shortest distances between <strong>ALL pairs</strong> of vertices</li>
+      <li>Negative weights present (but no negative cycles for meaningful shortest paths)</li>
+      <li>Detect <strong>ANY</strong> negative cycle in the entire graph — check if dist[v][v] < 0 after run</li>
+      <li>Need all-pairs reachability (transitive closure)</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Only one source — use Dijkstra's (O((n+m)logn)) or Bellman-Ford (O(nm)) which are much faster</li>
+      <li>Very large or sparse graphs — O(n³) becomes prohibitive</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li><strong>Negative cycle detection:</strong> check every dist[v][v] after the run. If dist[v][v] < 0, v is on a negative cycle.</li>
+      <li>iter[0][u][v] = direct edge weight, or ∞ if no direct edge</li>
+      <li>At iteration k: decide whether vertex k is useful as an intermediate between u and v</li>
+      <li>For dense graphs (m ≈ n²): Floyd-Warshall O(n³) ≈ Bellman-Ford × n O(n²m) — comparable</li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- Kruskal's -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">Kruskal's Algorithm</div>
+    <div class="algo-meta"><span>Spanning Tree</span><span>O(m log n)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Builds Minimum Spanning Tree by adding cheapest non-cycle edges. Returns an edge list.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple <strong>CONNECTED UNDIRECTED</strong> graph in adjacency list format</li>
+      <li>List of edge weights</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>edges[]</code> — list of exactly n-1 edges forming the Minimum Spanning Tree</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Find a Minimum Spanning Tree</li>
+      <li>Find a <strong>Maximum</strong> Spanning Tree — negate all weights first, then run Kruskal's</li>
+      <li>Solve widest path problem — negate weights, get max ST, BFS for s→t path</li>
+      <li>Need MST output as a <strong>list of edges</strong> for further processing</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Directed graphs — Kruskal's requires undirected graphs</li>
+      <li>Disconnected graphs (MST undefined — would give a spanning forest)</li>
+      <li>Need MST as parent pointers — use Prim's Algorithm instead</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li>For <strong>MAXIMUM Spanning Tree</strong>: negate every weight w(e) → -w(e), run Kruskal's, get max spanning tree</li>
+      <li>To use edges[] output for further algorithms: "Convert Kruskal's edges[] to adjacency list G_MST in O(n+m)"</li>
+      <li>A skipped edge means both its endpoints are already connected in the tree — existing path is at least as wide</li>
+      <li>Always outputs exactly n-1 edges for a connected graph</li>
+      <li>Widest path = max spanning tree (negate → Kruskal's) → BFS in the resulting tree</li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- Prim's -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">Prim's Algorithm</div>
+    <div class="algo-meta"><span>Spanning Tree</span><span>O(m log n)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Builds Minimum Spanning Tree by growing from a root. Returns parent pointers.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple <strong>CONNECTED UNDIRECTED</strong> graph in adjacency list format</li>
+      <li>List of edge weights</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>prev[]</code> — parent of each vertex in the MST. Starting vertex (chosen arbitrarily) has prev = nil.</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Find a Minimum Spanning Tree</li>
+      <li>Need MST as <strong>parent pointers</strong> for path tracing (same format as Dijkstra's prev[])</li>
+      <li>Same runtime as Kruskal's — choose based on which output format fits your next step</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Directed graphs</li>
+      <li>Need MST as an edge list — use Kruskal's Algorithm instead</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li>Convert prev[] to adjacency list: "Build G_MST from Prim's prev[] output in O(n+m)"</li>
+      <li>Starting vertex is chosen arbitrarily and has prev = nil</li>
+      <li>prev[] output format is identical to Dijkstra's and BFS — trace paths the same way</li>
+      <li>Choose Prim's over Kruskal's when you specifically want parent pointers rather than edge list</li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- Ford-Fulkerson -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">Ford-Fulkerson</div>
+    <div class="algo-meta"><span>Max Flow</span><span>O(mC)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Maximizes total flow from s to t by finding and augmenting paths. Requires integer capacities.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple <strong>CONNECTED DIRECTED</strong> graph in adjacency list format</li>
+      <li>Positive <strong>INTEGER</strong> edge capacities</li>
+      <li>Source vertex s</li>
+      <li>Sink vertex t</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>flow[]</code> — amount of capacity used on each edge in the optimal max flow solution</li>
+      <li><code>C</code> — the total maximum flow value from s to t</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Maximize total throughput / flow from s to t</li>
+      <li>Edge capacities are positive integers</li>
+      <li>Maximum flow value C is small enough that O(mC) is acceptable</li>
+      <li>Bipartite matching problems (after graph construction)</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Non-integer or very large capacities — O(mC) can be exponential. Use Edmonds-Karp.</li>
+      <li>Undirected graph — convert to directed first by replacing each edge with two directed edges</li>
+      <li>When you want a single best path — Ford-Fulkerson computes total flow across <strong>ALL paths simultaneously</strong></li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li><strong>Flow conservation law:</strong> at every non-source, non-sink vertex, flow in = flow out</li>
+      <li>For undirected input: replace edge (u,v, capacity c) with two directed edges u→v and v→u each with capacity c</li>
+      <li><strong>Max-flow min-cut theorem:</strong> max flow value = minimum total capacity of any cut separating s from t</li>
+      <li>O(mC) runtime can be exponential if C is large — always prefer Edmonds-Karp for safety</li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- Edmonds-Karp -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">Edmonds-Karp</div>
+    <div class="algo-meta"><span>Max Flow</span><span>O(nm²)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Max flow using BFS for augmenting paths. Polynomial time. Preferred for any capacities.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>Simple <strong>CONNECTED DIRECTED</strong> graph in adjacency list format</li>
+      <li>Positive edge capacities — integer or real-valued</li>
+      <li>Source vertex s</li>
+      <li>Sink vertex t</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>flow[]</code> — amount of capacity used on each edge in the optimal max flow solution</li>
+      <li><code>C</code> — the total maximum flow value from s to t</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Maximize total flow from s to t with any positive capacities</li>
+      <li>Non-integer or large capacity values where Ford-Fulkerson may not terminate</li>
+      <li>Need guaranteed polynomial runtime regardless of capacity values</li>
+      <li>Default choice when max flow is needed</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Single path problems — both flow algorithms compute total network volume, not one route</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li>Edmonds-Karp = Ford-Fulkerson + BFS augmenting paths. The BFS guarantee makes runtime polynomial.</li>
+      <li>O(nm²) is independent of capacity values — safe for any input</li>
+      <li>Outputs are identical to Ford-Fulkerson — use either interchangeably in solutions</li>
+      <li>When in doubt between Ford-Fulkerson and Edmonds-Karp: <strong>choose Edmonds-Karp</strong></li>
+    </ul></div>
+  </div></div>
+</div>
+
+<!-- 2-SAT -->
+<div class="algo-card">
+  <div class="algo-card-header">
+    <div class="algo-name">2-SAT</div>
+    <div class="algo-meta"><span>Satisfiability</span><span>O(n + m)</span></div>
+  </div>
+  <div class="algo-card-body"><div class="algo-card-body-inner">
+    <p class="algo-desc">Solves 2-CNF Boolean satisfiability by reduction to SCC. Returns a satisfying assignment or NO.</p>
+    <div class="io-section inputs"><h4>Inputs</h4><ul>
+      <li>A Boolean formula in CNF with at most 2 literals per clause</li>
+      <li>Backed by n variables (at most 2n literals) and m clauses</li>
+    </ul></div>
+    <div class="io-section outputs"><h4>Outputs</h4><ul>
+      <li><code>assignments[]</code> — true/false for each variable in a satisfying assignment. Returns 'NO' if unsatisfiable.</li>
+      <li>All SCC outputs are also available: ccnum[], G_SCC, metagraph structure.</li>
+    </ul></div>
+    <div class="io-section use"><h4>Use When</h4><ul>
+      <li>Determine if a 2-CNF formula is satisfiable</li>
+      <li>Encode a graph or assignment problem as a 2-CNF formula to check feasibility</li>
+      <li>Find a valid assignment when one exists</li>
+    </ul></div>
+    <div class="io-section no-use"><h4>Do NOT Use When</h4><ul>
+      <li>Formula has clauses with 3 or more literals — use <strong>only for 2-CNF</strong> (k-SAT with k≥3 is NP-complete)</li>
+      <li>Need <strong>all</strong> satisfying assignments — 2-SAT returns one valid assignment only</li>
+    </ul></div>
+    <div class="io-section tricks"><h4>Key Properties and Tricks</h4><ul>
+      <li><strong>Reduction:</strong> clause (α∨β) → implication edges ā→β and β̄→α in the implication graph</li>
+      <li><strong>UNSAT</strong> iff any variable xᵢ and its negation x̄ᵢ appear in the <strong>same SCC</strong></li>
+      <li>If satisfiable: take sink SCC S, set S=T and S̄=F, remove both, repeat — greedy assignment</li>
+      <li>Key fact: S is a sink SCC ↔ its negation S̄ is a source SCC (when all xᵢ, x̄ᵢ in different SCCs)</li>
+      <li>Runtime is O(n+m) because it is just SCC on the implication graph (2n vertices, 2m edges)</li>
+    </ul></div>
+  </div></div>
+</div>

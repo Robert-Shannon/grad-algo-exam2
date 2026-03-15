@@ -1,0 +1,717 @@
+<h1>Combo Patterns</h1>
+<p class="subtitle">31 patterns across 7 categories — chaining black-box algorithms to solve complex problems.</p>
+
+<!-- ===== CATEGORY 1: Advanced Path Problems ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Advanced Path Problems <span class="count">7 patterns</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">Beyond basic shortest path — when the path has constraints like required stops, forbidden nodes, bounded hops, or a multiplicative objective instead of additive.</p>
+
+    <!-- Pattern 1 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 1 — <em>Shortest Path Through a Required Intermediate Node v</em></div>
+        <div class="pattern-algo">Pipeline: Dijkstra's from s → Dijkstra's from v → Add two distances | O((n+m) log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find the shortest path from s to t that is REQUIRED to pass through node v.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Any s→v→t path has cost = dist(s,v) + dist(v,t). Since Dijkstra's finds shortest distances from a single source to ALL nodes, two runs give us both halves. The optimal forced path simply takes the best of each half independently.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Dijkstra's Algorithm from source s. Record dist_s[] — shortest from s to every vertex.</li>
+          <li>Run Dijkstra's Algorithm from required node v. Record dist_v[] — shortest from v to every vertex.</li>
+          <li>Answer = dist_s[v] + dist_v[t]. Reconstruct path by tracing prev[] from v to s (reversed) then prev[] from t back to v.</li>
+          <li>Runtime: O((n+m) log n) for each Dijkstra's run = O((n+m) log n) total.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>If the graph is directed, dist(v,t) requires Dijkstra's on the ORIGINAL graph from v — not a reverse graph run. Works for multiple required waypoints: chain Dijkstra's from each waypoint in order.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>Delivery truck must stop at the warehouse (v) on the way from depot (s) to customer (t). Minimize total distance.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 2 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 2 — <em>Shortest Path With at Most k Edges (Hop-Constrained)</em></div>
+        <div class="pattern-algo">Pipeline: Bellman-Ford → Read iter[k][t] | O(nm)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find the minimum-cost path from s to t using no more than k edges.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Bellman-Ford's iter[i][v] table records the shortest distance to v using at most i edges. This is its core definition — iter[k][t] is the exact answer. No other standard algorithm provides this intermediate iteration data.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Bellman-Ford from source s. This produces the full iter[i][v] table for i = 0 to n.</li>
+          <li>Read iter[k][t] directly from the table. This is the shortest s→t path using at most k edges.</li>
+          <li>If iter[k][t] = ∞, no path exists within k hops.</li>
+          <li>Runtime: O(nm) for the full Bellman-Ford run.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>You need the full iter table, not just the converged dist[] — this is a key reason to use Bellman-Ford over Dijkstra's even on positive-weight graphs. If k ≥ n-1, just read the final dist[t] — convergence guarantees it's the true shortest.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>Find the minimum-cost flight itinerary with at most k layovers.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 3 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 3 — <em>Most Reliable Path (Maximize Product of Survival Probabilities)</em></div>
+        <div class="pattern-algo">Pipeline: Transform w'(e) = -log(p(e)) → Dijkstra's Algorithm → Exponentiate result | O((n+m) log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Each edge has a probability p(e) of success. Find the path from s to t that MAXIMIZES the product of probabilities.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Maximizing ∏p(e) is equivalent to maximizing ∑log(p(e)), which equals minimizing ∑(-log(p(e))). Taking -log transforms a multiplicative product into an additive sum, allowing standard Dijkstra's to find the optimal path.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>For every edge e with probability p(e), compute w'(e) = -log(p(e)). Note: since 0 &lt; p(e) ≤ 1, all w'(e) ≥ 0 — Dijkstra's is valid.</li>
+          <li>Run Dijkstra's Algorithm with the transformed weights w'.</li>
+          <li>dist[t] = the minimum sum of -log(p) = maximum log(probability). The actual max probability = e^(-dist[t]).</li>
+          <li>Follow prev[] to get the optimal path.</li>
+          <li>Runtime: O((n+m) log n).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>Never use Bellman-Ford here — all w'(e) ≥ 0 since p(e) ≤ 1. The transformation only works for independent edge probabilities.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>Network routing: find the path where the packet is most likely to arrive intact.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 4 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 4 — <em>Longest Path in a DAG</em></div>
+        <div class="pattern-algo">Pipeline: Topological Sort → DP with maximize instead of minimize | O(n+m)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find the maximum-weight path from source s to every vertex in a DAG.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Topological order ensures every predecessor of v is processed before v. We relax edges in that order, keeping the MAXIMUM running total instead of minimum. No cycles means longest path is well-defined. On general graphs with cycles, longest path is NP-hard.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Topological Sort on the DAG. Get order[].</li>
+          <li>Initialize dist[s] = 0, dist[v] = -∞ for all v ≠ s.</li>
+          <li>For each vertex u in topological order[], for each neighbor v: if dist[u] + w(u,v) > dist[v], update dist[v] = dist[u] + w(u,v) and prev[v] = u.</li>
+          <li>dist[t] = length of the longest path from s to t. Trace prev[] for the actual path.</li>
+          <li>Runtime: O(n+m) — Topological Sort is O(n+m), DP is O(n+m).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>Requires a DAG — longest path on cyclic graphs with positive weights is NP-hard. Alternative: negate all weights and find SHORTEST path, then negate the answer.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>Critical path method (CPM) in project scheduling: find the longest dependency chain.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 5 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 5 — <em>Shortest Path Avoiding a Specific Set of Forbidden Nodes</em></div>
+        <div class="pattern-algo">Pipeline: Remove forbidden nodes from graph → Dijkstra's / BFS on reduced graph | O((n+m) log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find shortest path from s to t that does NOT pass through any node in a forbidden set F.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Removing forbidden nodes and all their incident edges gives a subgraph where any remaining path is guaranteed to avoid F. Running shortest path on this subgraph directly gives the constrained answer.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Build G' = subgraph of G keeping only vertices NOT in F, and only edges between non-forbidden vertices. This is O(n+m).</li>
+          <li>If s or t is in F, no valid path exists.</li>
+          <li>Run Dijkstra's Algorithm (weighted) or BFS (unweighted) from s on G'. dist[t] = constrained shortest path.</li>
+          <li>Runtime: O((n+m) log n) for weighted, O(n+m) for unweighted.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>If the forbidden set changes per query, this approach requires re-running for each query. For forbidden EDGES (not nodes), simply omit those edges when building G'.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 6 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 6 — <em>Diameter of a Graph (The Longest Shortest Path Between Any Pair)</em></div>
+        <div class="pattern-algo">Pipeline: Floyd-Warshall → max over all pairs dist[u][v] | O(n³)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find the maximum shortest-path distance between any two vertices. This is the "width" of the graph.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Floyd-Warshall computes all-pairs shortest paths in one pass. The diameter is simply the maximum value in the dist[][] table (excluding ∞ entries for disconnected pairs).</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Floyd-Warshall on the graph. Get dist[u][v] for all pairs.</li>
+          <li>Iterate over all pairs (u,v): diameter = max { dist[u][v] : dist[u][v] ≠ ∞ }.</li>
+          <li>If any dist[v][v] &lt; 0 after the run, a negative cycle exists — diameter is undefined.</li>
+          <li>Runtime: O(n³) for Floyd-Warshall + O(n²) scan = O(n³).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>On unweighted graphs, run BFS from every vertex O(n·(n+m)) — faster for sparse graphs. On directed graphs, diameter is NOT symmetric: dist(u,v) ≠ dist(v,u). On disconnected graphs, the diameter is only meaningful within connected components.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 7 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 7 — <em>Shortest Path in Graph With 0 and 1 Edge Weights Only</em></div>
+        <div class="pattern-algo">Pipeline: Model as BFS with deque (0-cost edges go to front, 1-cost to back) | O(n+m)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>All edge weights are either 0 or 1. Find the shortest weighted path from s to t.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Standard BFS gives hop count (unweighted). Dijkstra's gives weighted shortest path but costs O((n+m) log n). With only 0/1 weights, a deque-BFS runs in O(n+m): push to front for 0-cost edges (no distance increase), push to back for 1-cost edges. This is essentially Dijkstra's on two priority levels.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Initialize dist[s] = 0, all others = ∞. Use a deque (double-ended queue).</li>
+          <li>Push s to the deque front.</li>
+          <li>While deque is non-empty: pop from front. For each neighbor v: if dist[u] + w(u,v) &lt; dist[v], update dist[v]. If w(u,v) = 0, push v to FRONT; if w(u,v) = 1, push v to BACK.</li>
+          <li>dist[t] = shortest weighted path. Runtime: O(n+m).</li>
+          <li>In a black-box framework: use BFS after splitting 1-weight edges with a virtual intermediate node.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>This only works for {0,1} weights. For general small integers, use Dial's algorithm or Dijkstra's. The virtual-node approach is the black-box-safe version: split every weight-1 edge (u,v) into u→x→v with two weight-0 edges.</p></div>
+      </div></div>
+    </div>
+
+  </div></div>
+</div>
+
+<!-- ===== CATEGORY 2: Flow Network Reductions ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Flow Network Reductions <span class="count">5 patterns</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">Many problems that look nothing like flow can be REDUCED to max flow by clever graph construction. The key insight: max flow = maximum matching, maximum routing, minimum cut. Build the right network, run Edmonds-Karp, read off the answer.</p>
+
+    <!-- Pattern 8 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 8 — <em>Maximum Bipartite Matching</em></div>
+        <div class="pattern-algo">Pipeline: Build flow network (super-source + super-sink + unit capacities) → Edmonds-Karp | O(n·m²)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Given two groups L and R with edges between them, find the maximum set of pairings such that each node appears in at most one pair.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Bipartite matching = max flow in a carefully constructed network. Each potential match becomes a capacity-1 pipe. Flow conservation ensures each node participates in at most one match. The maximum flow equals the maximum matching.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Add virtual super-source s* and super-sink t*.</li>
+          <li>Add directed edge s*→v with capacity 1 for every node v in left group L.</li>
+          <li>Add directed edge v→t* with capacity 1 for every node v in right group R.</li>
+          <li>For each original edge (u,v) between L and R, add directed edge u→v with capacity 1.</li>
+          <li>Run Edmonds-Karp from s* to t*. Output C = maximum matching size. flow[u→v] = 1 means u is matched to v.</li>
+          <li>Runtime: O(n·m²) for Edmonds-Karp.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>The graph now has n_L + n_R + 2 vertices and m + n_L + n_R edges. Unit capacities are critical — if you use ∞, the matching constraint breaks. Max matching ≠ perfect matching. A perfect matching requires C = |L| = |R|.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 9 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 9 — <em>Maximum Number of Edge-Disjoint Paths from s to t</em></div>
+        <div class="pattern-algo">Pipeline: Set all capacities to 1 → Edmonds-Karp | O(n·m²)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find the maximum number of paths from s to t such that no two paths share any edge.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>By Menger's theorem, the maximum number of edge-disjoint s→t paths equals the maximum flow when every edge has capacity 1. Each unit of flow represents one independent path.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>For each edge in the original graph, set its capacity to 1. For undirected edges, add two directed edges (u→v and v→u) each with capacity 1.</li>
+          <li>Run Edmonds-Karp from s to t on this unit-capacity network.</li>
+          <li>Output C = maximum number of edge-disjoint paths.</li>
+          <li>To recover actual paths: trace which edges carry flow = 1 and extract connected paths from s to t.</li>
+          <li>Runtime: O(n·m²).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>"Edge-disjoint" ≠ "vertex-disjoint." Two paths can share intermediate vertices but not edges. The minimum edge cut size = C (by max-flow min-cut theorem) = minimum number of edges to remove to disconnect s from t.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 10 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 10 — <em>Maximum Number of Vertex-Disjoint Paths from s to t</em></div>
+        <div class="pattern-algo">Pipeline: Split each vertex into v_in → v_out (capacity 1) → Edmonds-Karp on expanded graph | O(n·m²)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find the maximum number of paths from s to t such that no two paths share any intermediate vertex.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Vertex capacity is enforced by splitting each vertex v into v_in and v_out with a capacity-1 edge between them. Any path through v must use this bottleneck edge, so at most one path can pass through v.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>For every vertex v (except s and t), create two nodes v_in and v_out. Add directed edge v_in→v_out with capacity 1.</li>
+          <li>For every original edge (u,v): add directed edge u_out→v_in with capacity ∞. For undirected edges, also add v_out→u_in.</li>
+          <li>Source s: use s_out. Sink t: use t_in.</li>
+          <li>Run Edmonds-Karp from s_out to t_in. Output C = maximum vertex-disjoint paths.</li>
+          <li>Runtime: O(n·m²).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>The split graph has 2n vertices and m + n edges. s and t are NOT split (or their internal edge has capacity ∞). Vertex-disjoint is strictly harder than edge-disjoint — there are always at least as many edge-disjoint paths as vertex-disjoint.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 11 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 11 — <em>Multi-Source Multi-Sink Maximum Flow</em></div>
+        <div class="pattern-algo">Pipeline: Add virtual super-source s* and super-sink t* → Edmonds-Karp | O(n·m²)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Multiple sources {s1, s2, ...} produce flow, multiple sinks {t1, t2, ...} consume flow. Find the maximum total flow.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>By adding a virtual super-source connected to every real source with ∞ capacity, and a virtual super-sink connected from every real sink with ∞ capacity, the problem reduces to a standard single-source single-sink max flow.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Add virtual super-source s*. For each real source si, add directed edge s*→si with capacity ∞.</li>
+          <li>Add virtual super-sink t*. For each real sink tj, add directed edge tj→t* with capacity ∞.</li>
+          <li>Run Edmonds-Karp from s* to t*. Total max flow C = total throughput across all sources and sinks.</li>
+          <li>Runtime: O(n·m²) on the expanded graph.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>If each source has a production limit L_i, set capacity of s*→si = L_i instead of ∞. If each sink has a consumption limit, similarly bound t_j→t*. The ∞ capacity edges model unlimited production/consumption.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 12 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 12 — <em>Minimum Cut (Find the Bottleneck Separating s from t)</em></div>
+        <div class="pattern-algo">Pipeline: Edmonds-Karp → BFS on residual graph → Partition reachable/unreachable | O(n·m²)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find the minimum-capacity set of edges whose removal disconnects s from t.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>After running max flow to completion, the residual graph captures which edges have remaining capacity. BFS from s on the residual graph finds all vertices reachable from s. Cut edges are those going from a reachable vertex to a non-reachable vertex in the original graph.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Edmonds-Karp from s to t. Get flow[] and the final residual graph.</li>
+          <li>Run BFS from s on the RESIDUAL graph (only traverse edges with remaining capacity > 0). Let S = set of vertices reachable from s.</li>
+          <li>The min cut edges = all original edges (u,v) where u ∈ S and v ∉ S. These are exactly the edges saturated by the max flow.</li>
+          <li>Min cut capacity = sum of capacities of cut edges = C (the max flow value).</li>
+          <li>Runtime: O(n·m²) for Edmonds-Karp + O(n+m) for BFS = O(n·m²).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>The min cut is NOT just the saturated edges — it's saturated edges crossing from S to T (not T to S). For undirected graphs, edges in both directions must be considered. Max-flow min-cut theorem: min cut capacity = max flow value always.</p></div>
+      </div></div>
+    </div>
+
+  </div></div>
+</div>
+
+<!-- ===== CATEGORY 3: SCC as a Preprocessing Step ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">SCC as a Preprocessing Step <span class="count">5 patterns</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">Strongly Connected Components is almost never the FINAL answer — it is a preprocessing tool that converts a messy cyclic directed graph into a clean DAG. Once you have the DAG metagraph G_SCC, you can apply Topological Sort, shortest path, BFS, or any DAG algorithm.</p>
+
+    <!-- Pattern 13 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 13 — <em>Topological Ordering of a Directed Graph That Has Cycles</em></div>
+        <div class="pattern-algo">Pipeline: SCC → Topological Sort on G_SCC metagraph | O(n+m)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>A directed graph has cycles (so Topological Sort would fail directly). Find a valid ordering of the SCCs from sources to sinks.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>SCCs represent groups where internal order doesn't matter for inter-group dependencies. The metagraph G_SCC is always a DAG. Topological Sort on G_SCC gives the dependency order of the groups.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Strongly Connected Components on the directed graph. Get G_SCC = (V_SCC, E_SCC) and ccnum[] mapping.</li>
+          <li>G_SCC is already sorted SINK→SOURCE (reverse topological order). Reverse V_SCC order to get SOURCE→SINK topological order.</li>
+          <li>Alternatively, run Topological Sort on G_SCC directly to get order[] on the metanodes.</li>
+          <li>Map any original vertex v to its metanode using ccnum[v].</li>
+          <li>Runtime: O(n+m) for SCC + O(n_SCC + m_SCC) for Topo Sort = O(n+m).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>You're ordering SCCs, not individual vertices. Vertices WITHIN an SCC are all mutually reachable — their internal order is irrelevant for inter-SCC dependencies. If you need individual vertex ordering within each SCC, you need additional processing.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 14 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 14 — <em>Shortest Path in a Directed Graph With Cycles (Condensation Approach)</em></div>
+        <div class="pattern-algo">Pipeline: SCC → Build weighted G_SCC → Dijkstra's / Bellman-Ford on G_SCC | O((n+m) log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find shortest path from s to t in a directed graph where SCCs may exist.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Within an SCC, any vertex can reach any other — the internal cost is a constant that can be precomputed. Edges between SCCs are then processed by treating each SCC as a single supernode.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run SCC. Get G_SCC and ccnum[].</li>
+          <li>Build weighted G_SCC: for each inter-SCC edge (u,v) in original graph where ccnum[u] ≠ ccnum[v], add edge ccnum[u]→ccnum[v] with weight w(u,v) to G_SCC.</li>
+          <li>Run Dijkstra's Algorithm on G_SCC from ccnum[s] to ccnum[t].</li>
+          <li>Add internal traversal costs within the source and destination SCCs if needed.</li>
+          <li>Runtime: O(n+m) for SCC + O((n+m) log n) for Dijkstra's = O((n+m) log n).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>If t is in the same SCC as s, the answer is the internal traversal cost within that SCC. Multiple edges between the same pair of SCCs should be reduced to the minimum-weight one.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 15 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 15 — <em>Can s Reach t in a Directed Graph? (Directed Reachability)</em></div>
+        <div class="pattern-algo">Pipeline: SCC → BFS/DFS on G_SCC from ccnum[s] | O(n+m)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Given a directed graph (possibly cyclic), determine if there exists a path from s to t.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>If s and t are in the same SCC, s can trivially reach t. Otherwise, check if ccnum[t] is reachable from ccnum[s] in the DAG metagraph G_SCC.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run SCC. If ccnum[s] == ccnum[t], return YES (same SCC = mutual reachability).</li>
+          <li>Otherwise, run BFS from ccnum[s] on G_SCC.</li>
+          <li>If ccnum[t] is reached by BFS (dist[ccnum[t]] ≠ ∞), return YES. Otherwise NO.</li>
+          <li>Runtime: O(n+m) for SCC + O(n_SCC + m_SCC) for BFS = O(n+m).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>This is faster than running BFS on the original graph only when you need to answer many reachability queries. For a single query, just DFS from s on the original directed graph — O(n+m) without needing SCC.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>In a computer network with one-way data links, can data from router A reach router B?</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 16 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 16 — <em>Find the Unique SCC That All Other SCCs Can Reach (Universal Sink SCC)</em></div>
+        <div class="pattern-algo">Pipeline: SCC → Find sink in G_SCC (V_SCC[1] or empty out-edges) | O(n+m)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find the SCC(s) in the condensation graph that have no outgoing edges — every path eventually ends here.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>In G_SCC (a DAG), sink nodes have no outgoing edges. G_SCC is sorted SINK→SOURCE, so V_SCC[1] is always a sink.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run SCC. Get G_SCC = (V_SCC, E_SCC).</li>
+          <li>V_SCC[1] is a sink SCC (first in reverse-topo order = first sink).</li>
+          <li>To find ALL sink SCCs: iterate V_SCC and collect every metanode with an empty adjacency list in E_SCC.</li>
+          <li>All original vertices v with ccnum[v] = sink metanode index are in a sink SCC.</li>
+          <li>Runtime: O(n+m) for SCC + O(n_SCC + m_SCC) scan = O(n+m).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>There may be multiple sink SCCs if the condensation DAG has multiple sinks. If the condensation DAG has exactly ONE sink SCC, then ALL vertices in the graph can reach it.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 17 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 17 — <em>Minimum Edges to Add to Make Entire Graph Strongly Connected</em></div>
+        <div class="pattern-algo">Pipeline: SCC → Count source SCCs and sink SCCs in G_SCC → Answer = max(sources, sinks) | O(n+m)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>A directed graph is not strongly connected. What is the minimum number of edges to add to make it strongly connected?</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>In G_SCC (a DAG), source SCCs and sink SCCs are the "endpoints" that prevent strong connectivity. To connect everything, we need to add edges linking sinks to sources. The minimum is max(number of sources, number of sinks).</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run SCC to get G_SCC.</li>
+          <li>Count P = number of source SCCs in G_SCC (no incoming inter-SCC edges).</li>
+          <li>Count Q = number of sink SCCs in G_SCC (no outgoing inter-SCC edges).</li>
+          <li>Minimum edges to add = max(P, Q). Special case: if already 1 SCC, answer = 0.</li>
+          <li>Runtime: O(n+m) for SCC + O(n_SCC + m_SCC) for counting = O(n+m).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>If |V_SCC| = 1, the graph is already strongly connected — answer is 0. The pairing works by connecting a sink to a source in a cycle, which is why max(P,Q) suffices rather than P+Q.</p></div>
+      </div></div>
+    </div>
+
+  </div></div>
+</div>
+
+<!-- ===== CATEGORY 4: Graph Transformation Tricks ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Graph Transformation Tricks <span class="count">4 patterns</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">The most powerful technique: transform the graph into a different graph that a standard black-box can solve directly. The key is that the new graph's structure maps directly to your problem's constraints.</p>
+
+    <!-- Pattern 18 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 18 — <em>Multi-Source Shortest Path (Many Valid Starting Points)</em></div>
+        <div class="pattern-algo">Pipeline: Add virtual super-source s* with 0-weight edges to all real sources → Dijkstra's / BFS from s* | O((n+m) log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Multiple starting nodes are all valid. Find the shortest distance from ANY source to every other vertex.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Running Dijkstra's from each source separately costs O(k·(n+m) log n). One virtual super-source s* connected to all real sources with 0-weight edges reduces this to a single O((n+m) log n) run. The 0-weight edges don't change distances.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Create virtual node s*. Add edge s*→v with weight 0 for every real source v.</li>
+          <li>Run Dijkstra's Algorithm from s* (or BFS if unweighted).</li>
+          <li>dist[v] for any vertex v = minimum distance from any real source to v.</li>
+          <li>prev[v] traces the path back. The first real source encountered going back from s* = the closest source.</li>
+          <li>Runtime: O((n+m) log n).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>For flow problems, add s*→si with capacity equal to si's supply limit. For BFS (unweighted), just add all sources to the initial BFS queue with distance 0 — no virtual node needed. The virtual node trick is mainly needed for weighted graphs.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 19 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 19 — <em>Backward Reachability (Which Nodes Can Reach t?)</em></div>
+        <div class="pattern-algo">Pipeline: Reverse all edges to get G^R → BFS / Dijkstra's from t on G^R | O((n+m) log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find all vertices that can reach a specific target t (instead of all vertices reachable FROM a source).</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>In G^R (all edges reversed), a path from u to t in G becomes a path from t to u in G^R. BFS/Dijkstra's from t on G^R gives exactly the set of vertices that could reach t in the original graph.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Build G^R by reversing all directed edges. This is O(n+m).</li>
+          <li>Run BFS from t on G^R.</li>
+          <li>All vertices with dist[v] ≠ ∞ in G^R = all vertices that can reach t in the original G.</li>
+          <li>For weighted "shortest path leading to t": run Dijkstra's on G^R from t. dist[v] = shortest path from v to t in original G.</li>
+          <li>Runtime: O(n+m) to reverse + O((n+m) log n) for Dijkstra's = O((n+m) log n).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>The path in G^R is the REVERSE of the actual path in G. To reconstruct s→t path in G, trace prev[] in G^R from s back, then reverse the path. This is already used internally in SCC (Kosaraju's algorithm runs DFS on G^R).</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 20 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 20 — <em>Layered Graph for State-Dependent Path Problems</em></div>
+        <div class="pattern-algo">Pipeline: Build k-layer copy of graph → Dijkstra's / BFS on layered graph | O(k·(n+m) log(kn))</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>A path's cost depends on some state that changes as you travel (e.g., "you can use a discount coupon exactly once," or "you have k lives remaining").</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>States turn the problem from a pure graph search into a search on (node, state) pairs. By making k copies of the graph — one per state — we encode state transitions as edges BETWEEN layers. Dijkstra's on the layered graph finds the optimal (node, state) path.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Identify the state space with k possible states (e.g., k=2 for "coupon used" vs "coupon not used").</li>
+          <li>Create k copies of the graph: layer 0 = state 0, layer 1 = state 1, ..., layer k-1 = state k-1.</li>
+          <li>For edges that DON'T trigger a state change: add the edge within the same layer.</li>
+          <li>For edges that DO trigger a state change (e.g., using a coupon on edge e): add a cross-layer edge from layer i to layer i+1 with the modified cost.</li>
+          <li>Run Dijkstra's from (s, initial_state) to (t, any_state). Take the minimum over all final states.</li>
+          <li>Runtime: O(k·(n+m) log(kn)).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>The layered graph has k·n vertices and up to k·m + (transition edges) total edges. State must be discrete and finite for this to work. Continuous states require different DP approaches.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>"Use a coupon for half-price on exactly one edge. Find the cheapest path from s to t."</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 21 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 21 — <em>Shortest Path on a Graph With Per-Vertex Costs (Not Per-Edge)</em></div>
+        <div class="pattern-algo">Pipeline: Split each vertex into v_in and v_out → Dijkstra's on expanded graph | O((n+m) log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Costs are associated with visiting VERTICES, not traversing edges. Find the minimum-cost path from s to t.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Vertex costs don't fit standard shortest-path algorithms directly. By splitting each vertex v into v_in and v_out with an internal edge of weight cost(v), we convert vertex costs into edge costs.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>For each vertex v with cost c(v): create v_in and v_out. Add directed edge v_in→v_out with weight c(v).</li>
+          <li>For each original edge (u,v): add directed edge u_out→v_in with weight 0.</li>
+          <li>Source: start from s_in (or s_out if you don't pay for s). Destination: t_out.</li>
+          <li>Run Dijkstra's from s_in to t_out on the expanded graph.</li>
+          <li>dist[t_out] = minimum vertex-cost path from s to t.</li>
+          <li>Runtime: O((n+m) log n) on the 2n-vertex expanded graph.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>This is also the pattern for vertex-disjoint paths (set c(v) = capacity 1). Edge costs can coexist: add edge weights directly to the u_out→v_in edges instead of 0.</p></div>
+      </div></div>
+    </div>
+
+  </div></div>
+</div>
+
+<!-- ===== CATEGORY 5: Spanning Tree Combinations ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Spanning Tree Combinations <span class="count">3 patterns</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">The MST is not just about minimum cost — it encodes optimal bottleneck properties. Combined with BFS/DFS traversal of the tree, it answers a surprising range of path optimization questions.</p>
+
+    <!-- Pattern 22 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 22 — <em>All-Pairs Widest Path (Bottleneck for Every Pair u,v)</em></div>
+        <div class="pattern-algo">Pipeline: Kruskal's (negated) → max spanning tree → For each query (u,v): BFS in MST | O(m log n + n² query cost)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Preprocess the graph so that for ANY pair (u,v), you can quickly answer: what is the widest (maximum bottleneck) path between them?</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>The max spanning tree has a key theorem: for ANY pair (u,v), the unique path between them in the max spanning tree IS the globally widest path. Build the MST once, then answer each query by finding the path in the tree.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Negate all edge weights. Run Kruskal's Algorithm to get max spanning tree edges[].</li>
+          <li>Build adjacency list G_MST from edges[] in O(n+m).</li>
+          <li>For each query (u,v): run BFS from u on G_MST. Follow prev[] from v back to u. The minimum-weight edge on this tree path = the widest path bottleneck in the original graph.</li>
+          <li>Total runtime: O(m log n) for Kruskal's + O(n+m) per query.</li>
+          <li>For all n² pairs: O(m log n) preprocessing + O(n·(n+m)) for all queries.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>Remember to un-negate the edge weight when reading the bottleneck value. The MST gives the widest PATH (single source to single destination bottleneck). This is different from "widest spanning tree" (minimum max edge across all spanning trees).</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 23 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 23 — <em>Minimum Bottleneck Spanning Tree (Same as MST)</em></div>
+        <div class="pattern-algo">Pipeline: Kruskal's Algorithm (standard) | O(m log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find a spanning tree that minimizes the MAXIMUM edge weight used (minimize the worst edge in the tree).</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>A surprising theorem: the Minimum Spanning Tree IS the Minimum Bottleneck Spanning Tree. The maximum-weight edge in ANY MST is at most as large as the maximum-weight edge in any other spanning tree. Kruskal's naturally avoids heavy edges, minimizing the bottleneck.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Kruskal's Algorithm normally (no negation needed).</li>
+          <li>The resulting MST has the minimum possible maximum-edge-weight among all spanning trees.</li>
+          <li>The bottleneck = the weight of the heaviest edge in the MST.</li>
+          <li>Runtime: O(m log n).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>This is NOT the same as the widest single path problem. Minimum bottleneck SPANNING TREE minimizes the worst edge across the whole tree. Widest PATH minimizes the worst edge on one specific route. The MST might not give the minimum-bottleneck PATH between two specific vertices — use the negation trick for that.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 24 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 24 — <em>Check if a Specific Edge Must Be in EVERY Minimum Spanning Tree</em></div>
+        <div class="pattern-algo">Pipeline: Kruskal's Algorithm → Check if removing that edge disconnects the MST | O(m log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Given an edge e, determine if e appears in ALL possible MSTs.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>An edge e is in every MST if and only if it is the unique minimum-weight edge crossing some cut. If removing e from the MST disconnects it and e has strictly smaller weight than every other edge crossing that cut, then e is mandatory.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Kruskal's to get one MST.</li>
+          <li>Check if edge e is in the MST. If not, it's definitely not in every MST.</li>
+          <li>If e IS in the MST: temporarily remove e from G_MST. Run BFS/DFS to find the two components C1 and C2.</li>
+          <li>Check if any other edge between C1 and C2 has the SAME weight as e. If yes, e could be swapped out — it's not mandatory. If all other crossing edges are strictly heavier, e is in every MST.</li>
+          <li>Runtime: O(m log n) for Kruskal's + O(n+m) for BFS = O(m log n).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>Weight ties are the key case: if another edge has the same weight, it's an alternative, and e is NOT in every MST. This test is valid because Kruskal's can swap equal-weight edges freely.</p></div>
+      </div></div>
+    </div>
+
+  </div></div>
+</div>
+
+<!-- ===== CATEGORY 6: DP on Graphs ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">DP on Graphs (DAG + Relaxation) <span class="count">3 patterns</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">Graph DP problems require topological order to ensure subproblems are solved before they are needed. The combination is always: (1) establish ordering via Topo Sort or Bellman-Ford iterations, (2) fill DP table using that ordering.</p>
+
+    <!-- Pattern 25 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 25 — <em>Count the Number of Shortest Paths from s to t</em></div>
+        <div class="pattern-algo">Pipeline: Dijkstra's Algorithm → DP count pass in order of dist[] | O((n+m) log n)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find both the shortest distance from s to t AND the number of distinct shortest paths achieving that distance.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Dijkstra's gives the shortest distance and a valid prev[]. To COUNT all shortest paths, process vertices in order of their dist[] values (the "topological order" of the shortest path DAG). For each vertex, count[v] = sum of count[u] for all u where dist[u] + w(u,v) = dist[v].</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Dijkstra's Algorithm from s. Get dist[] for all vertices.</li>
+          <li>Initialize count[s] = 1, count[v] = 0 for all v ≠ s.</li>
+          <li>Process vertices in increasing order of dist[v] (i.e., the order Dijkstra's dequeued them).</li>
+          <li>For each vertex u in that order, for each neighbor v: if dist[u] + w(u,v) == dist[v], then count[v] += count[u].</li>
+          <li>count[t] = total number of shortest paths from s to t.</li>
+          <li>Runtime: O((n+m) log n).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>This creates a DAG of shortest-path edges (only edges that lie on a shortest path). DP on this DAG counts paths. If dist[v] can be updated multiple times in Dijkstra's, only add to count[v] from vertices u with the finalized shortest distance.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>How many equally fast routes exist from s to t? Useful for load balancing across multiple optimal paths.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 26 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 26 — <em>Shortest Path With a Fixed Number of Allowed Negative Edges</em></div>
+        <div class="pattern-algo">Pipeline: Build layered graph (k+1 layers for 0..k negative edges used) → Dijkstra's on layered graph | O(k·(n+m) log(kn))</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>A graph has both positive and negative edges. Find the shortest path from s to t where you may use AT MOST k negative-weight edges.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Dijkstra's fails with negative edges. A layered graph tracks how many negative edges have been used as a state. Positive edges stay within a layer; negative edges advance to the next layer. Dijkstra's on this layered graph is valid because all same-layer edges are positive.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Create k+1 layers (layer i = "used exactly i negative edges so far").</li>
+          <li>For positive-weight edges (u,v): copy edge within each layer — (u,i)→(v,i) with weight w(u,v).</li>
+          <li>For negative-weight edges (u,v): add cross-layer edge (u,i)→(v,i+1) with weight w(u,v).</li>
+          <li>Alternative cleaner approach: negate the negative edges and use layered Dijkstra's where crossing a layer uses a formerly-negative edge for free.</li>
+          <li>Run Dijkstra's from (s, layer 0). Answer = min over all layers of dist[(t, layer i)].</li>
+          <li>Runtime: O(k·(n+m) log(kn)).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>If k ≥ number of negative edges, just use Bellman-Ford directly. The layered graph approach is most useful when k is small (k=1 or k=2).</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>Find the shortest delivery route where you can use at most one "express discount" road (negative cost) along the way.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 27 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 27 — <em>Longest Path in General Graph With No Positive Cycles (But With Negative Edges)</em></div>
+        <div class="pattern-algo">Pipeline: Bellman-Ford with negated weights → Check for negative cycles in negated graph | O(nm)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find the longest weighted path from s to t in a graph that may have negative edges but no positive-weight cycles.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Negate all edge weights. A longest path in the original = shortest path in the negated graph. Bellman-Ford handles negative weights. A positive cycle in the original = a negative cycle in the negated graph — use Bellman-Ford's cycle detection to verify the problem is well-defined.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Negate all edge weights: w'(e) = -w(e).</li>
+          <li>Run Bellman-Ford on the negated graph from s.</li>
+          <li>If Bellman-Ford detects a negative cycle (in the negated graph), a positive cycle exists in the original — longest path is undefined (unbounded).</li>
+          <li>Otherwise, dist[t] in the negated graph = -(longest path from s to t in original). Answer = -dist[t].</li>
+          <li>Runtime: O(nm).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>On a DAG, use Topological Sort + DP instead — O(n+m) is much faster. Detecting a positive cycle means the problem is unbounded — report "no finite longest path."</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>Maximum profit path through a trading network where some trades have costs (negative profit) but no sequence of trades makes unlimited profit.</p></div>
+      </div></div>
+    </div>
+
+  </div></div>
+</div>
+
+<!-- ===== CATEGORY 7: Detection Problems ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Detection Problems (Verify Properties First, Then Solve) <span class="count">4 patterns</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">Many problems require first verifying a property (is this a DAG? does a negative cycle exist? is the graph connected?) before applying the main algorithm. These are two-phase pipelines: detect, then act.</p>
+
+    <!-- Pattern 28 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 28 — <em>Verify Graph is a DAG, Then Apply Topological DP</em></div>
+        <div class="pattern-algo">Pipeline: DFS (check back edges) → Topological Sort + DP if no back edges | O(n+m)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>A problem requires DAG-based dynamic programming, but you're not certain the input is a DAG.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Topological Sort gives wrong results on cyclic graphs. DFS detects cycles via back edges in O(n+m). If a cycle exists, report error or switch algorithms. If no cycles found, Topological Sort is safe.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run DFS on the directed graph. Check all post[] values.</li>
+          <li>For every edge (u,v) in the original graph: if post[u] &lt; post[v], a back edge exists → graph HAS a cycle → cannot apply DAG algorithms.</li>
+          <li>If no back edges found → graph is a DAG → run Topological Sort, then apply DP.</li>
+          <li>Note: DFS output (pre[], post[], order[]) can be reused for Topological Sort — no need to run DFS twice. Topological Sort already includes all DFS outputs.</li>
+          <li>Runtime: O(n+m) — DFS/Topo Sort combined.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>Just run Topological Sort — it subsumes DFS. If the graph has a cycle, Topological Sort's result will be invalid. You can verify the output to detect this. Alternatively, use Kahn's algorithm — if the queue empties before all vertices are processed, a cycle exists.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>Check if a build dependency system is free of circular dependencies before computing a valid build order.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 29 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 29 — <em>Detect Negative Cycle, Then Find Shortest Path or Report Infeasibility</em></div>
+        <div class="pattern-algo">Pipeline: Bellman-Ford (n iterations) → Check iter[n] vs iter[n-1] → Report or return dist[] | O(nm)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Find shortest path from s to t on a graph that MAY have negative edges. If a negative cycle reachable from s exists, report that shortest path is undefined.</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>A negative cycle makes shortest paths undefined — you can loop forever to decrease cost. Bellman-Ford detects this in the n-th iteration. If no negative cycle: dist[] from round n-1 is the correct answer.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Bellman-Ford from s. Execute n iterations (one extra beyond the standard n-1).</li>
+          <li>Compare iter[n][v] vs iter[n-1][v] for all vertices v.</li>
+          <li>If ANY iter[n][v] &lt; iter[n-1][v]: a negative cycle reachable from s exists. Shortest path to those vertices is -∞. Report infeasibility.</li>
+          <li>If no change in round n: dist[t] = iter[n-1][t] = correct shortest path. Follow prev[] for the path.</li>
+          <li>Runtime: O(nm) — n iterations of Bellman-Ford.</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>Only vertices v where iter[n][v] &lt; iter[n-1][v], or vertices reachable FROM those vertices, have -∞ shortest paths. To find which vertices are downstream of the negative cycle, run DFS from all detected vertices in round n.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>Currency arbitrage detection: find the cheapest exchange path, or report that infinite profit is possible via a cyclic arbitrage.</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 30 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 30 — <em>All-Pairs Connectivity Check (Is Graph Strongly Connected?)</em></div>
+        <div class="pattern-algo">Pipeline: SCC → Check if |V_SCC| == 1 | O(n+m)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Determine if every vertex in a directed graph can reach every other vertex (strongly connected).</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>A directed graph is strongly connected if and only if it has exactly one SCC containing all n vertices. The SCC algorithm computes this directly.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Strongly Connected Components.</li>
+          <li>Check if |V_SCC| == 1 (only one metanode in the metagraph).</li>
+          <li>If yes: the graph is strongly connected — every vertex can reach every other.</li>
+          <li>If no: the number of SCCs is |V_SCC| > 1. Vertices in different SCCs cannot mutually reach each other.</li>
+          <li>Runtime: O(n+m).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>For UNDIRECTED graphs: just check if DFS from any vertex visits all n vertices — O(n+m) without needing SCC. If the graph is not strongly connected, the SCCs and G_SCC show exactly which groups are isolated from each other.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>Is this network resilient enough that any server can communicate with any other server?</p></div>
+      </div></div>
+    </div>
+
+    <!-- Pattern 31 -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Pattern 31 — <em>Find All Vertices on Any Negative Cycle</em></div>
+        <div class="pattern-algo">Pipeline: Bellman-Ford (n iterations) → DFS from all updated vertices in round n | O(nm)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Problem</h4><p>Identify every vertex that lies on a negative-weight cycle (not just detect that one exists).</p></div>
+        <div class="detail-block how"><h4>Why This Works</h4><p>Bellman-Ford's n-th iteration identifies vertices whose distance STILL decreases — these are directly affected by a negative cycle. But vertices reachable FROM those vertices also have -∞ shortest paths. DFS from all identified vertices finds all affected vertices.</p></div>
+        <div class="detail-block use-when"><h4>Step-by-Step Solution Template</h4><ul>
+          <li>Run Bellman-Ford for n iterations. Track which vertices v have iter[n][v] &lt; iter[n-1][v] — call this set CYCLED.</li>
+          <li>Build a list of all vertices in CYCLED.</li>
+          <li>Run DFS from every vertex in CYCLED on the original directed graph.</li>
+          <li>All vertices visited by this DFS are "tainted" — they can reach or be reached from a negative cycle and have -∞ shortest path from s.</li>
+          <li>Runtime: O(nm) for Bellman-Ford + O(n+m) for DFS = O(nm).</li>
+        </ul></div>
+        <div class="detail-block do-not"><h4>Gotchas</h4><p>A vertex v may not be ON the cycle but still have -∞ shortest path if it is DOWNSTREAM from the cycle (reachable from the cycle). This is often followed by a modified shortest path that reports -∞ for tainted vertices.</p></div>
+        <div class="detail-block example"><h4>Example</h4><p>In a financial network, identify all assets whose value could be driven to -∞ by an arbitrage loop.</p></div>
+      </div></div>
+    </div>
+
+  </div></div>
+</div>

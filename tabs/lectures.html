@@ -1,0 +1,521 @@
+<h1>CS6515 — Graph Algorithms: Complete Lecture Notes</h1>
+<p class="subtitle">HIGH YIELD — Sections marked with a star are especially likely to appear as multiple choice questions.</p>
+
+<!-- ===== GR1 — Strongly Connected Components ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">GR1 — Strongly Connected Components <span class="count">DFS, Cycles, Topological Sort, SCC Algorithm</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">HIGH YIELD — Multiple choice heavy. Every fact here has appeared as an MC trap.</p>
+
+    <div class="section-title">DFS Pseudocode — What It Returns</div>
+    <ul>
+      <li>Input: G = (V,E) in adjacency list representation. Starting vertex is OPTIONAL. If no starting vertex is passed, DFS iterates all v&#8712;V and explores any not yet visited — it covers the whole graph automatically.</li>
+      <li>Explore(z) sets ccnum(z)=CC, visited(z)=TRUE, then recurses on all unvisited neighbors. The CC counter increments BEFORE calling Explore — so each new unvisited vertex found in the outer loop starts a new component.</li>
+      <li>Runtime: O(n+m) where n=|V|, m=|E|. Linear time. Each vertex visited once, each edge traversed once.</li>
+      <li>visited[] is internal only — it is NOT returned. It is always all-TRUE when DFS completes. Common trap: students think visited[] is useful output. It's not — use ccnum[] instead.</li>
+      <li>prev(w)=z is set when vertex w is first visited from z. Used to reconstruct paths. Follow prev[] backwards from target to source to get the actual path.</li>
+      <li>Clock starts at 1. pre(z)=clock; clock++ on ENTRY. post(z)=clock; clock++ on EXIT. Total clock ticks = 2n. Pre/post range is [1, 2n]. Each vertex uses exactly 2 ticks.</li>
+    </ul>
+
+    <div class="section-title">Four Edge Types &amp; Post-Order Rules</div>
+    <p>For edge z→w, the post[] relationship determines edge type. Back edges are the ONLY ones where post increases along the direction of the edge.</p>
+    <div class="table-scroll"><table>
+      <tr><th>Edge Type</th><th>Examples</th><th>post(z) vs post(w)</th><th>Why</th><th>Indicates Cycle?</th></tr>
+      <tr><td><strong>Tree Edge</strong></td><td>B→A, A→D</td><td>post(z) > post(w)</td><td>Descendant finishes before ancestor — always.</td><td>No</td></tr>
+      <tr><td><strong>Forward Edge</strong></td><td>D→G, B→E</td><td>post(z) > post(w)</td><td>Goes DOWN multiple levels — same as tree edges.</td><td>No</td></tr>
+      <tr><td><strong>Cross Edge</strong></td><td>F→H, H→G</td><td>post(z) > post(w)</td><td>H was already fully finished before F was explored.</td><td>No</td></tr>
+      <tr><td><strong>Back Edge</strong></td><td>E→A, F→B</td><td>post(z) &lt; post(w)</td><td>Goes UP to an ancestor — ancestor finishes AFTER descendant.</td><td><strong>YES</strong> ← only this one!</td></tr>
+    </table></div>
+    <p><strong>The One Rule to Remember:</strong> ONLY back edges have post(z) &lt; post(w). All other edges: post(z) > post(w). This is the cycle detection rule.</p>
+
+    <div class="section-title">Cycle Detection Theorem</div>
+    <p><strong>Theorem:</strong> G has a cycle ↔ its DFS tree has a back edge.</p>
+    <ul>
+      <li><strong>Forward (cycle → back edge):</strong> If G has a cycle a→b→c→…→j→a, one vertex i is explored first. All others are reachable from i, so they're in i's subtree. The edge into i (from i-1) goes from descendant to ancestor = back edge.</li>
+      <li><strong>Backward (back edge → cycle):</strong> If DFS tree has back edge a→b (a is descendant of b), then tree edges give path b→…→a, and back edge gives a→b. Together: a cycle.</li>
+    </ul>
+    <p><strong>Key Fact:</strong> This holds for ANY starting vertex and ANY neighbor ordering — it's guaranteed.</p>
+    <p><strong>Exam Hint:</strong> MC trap: "Does back edge mean cycle?" YES always. "Does forward/cross edge mean cycle?" NO never.</p>
+
+    <div class="section-title">Topological Sort — Key Facts</div>
+    <ul>
+      <li>DAG = Directed Acyclic Graph = no cycles = NO back edges in DFS tree. The two conditions are equivalent.</li>
+      <li>Topological order: order vertices so ALL edges go from lower-order to higher-order. Equivalently: for every edge u→v, u appears before v.</li>
+      <li>Algorithm: Run DFS on DAG, then order vertices by DECREASING post[] number. The vertex with highest post# goes first.</li>
+      <li>Sorting by decreasing post# takes O(n) — NOT O(n log n). Post# values range 1 to 2n. Use an array of size 2n and insert by position.</li>
+      <li>Total Topological Sort runtime: O(n+m). DFS is O(n+m), sort is O(n).</li>
+      <li>Alternative algorithm: repeatedly find a SINK vertex, output it, delete it, repeat.</li>
+      <li>Multiple valid topological orderings can exist when some vertices have no dependency.</li>
+    </ul>
+
+    <div class="section-title">DAG Structure: Sources &amp; Sinks</div>
+    <ul>
+      <li>Source vertex = no incoming edges. First in every topological ordering. In DFS: source has the HIGHEST post# (it finishes last because it can reach everything).</li>
+      <li>Sink vertex = no outgoing edges. Last in every topological ordering. In DFS: sink has the LOWEST post# (it finishes first because nothing reachable from it).</li>
+      <li>Every DAG has at least ONE source AND at least ONE sink. Guaranteed.</li>
+      <li>There may be MULTIPLE sources and sinks.</li>
+      <li>Vertex with HIGHEST post# = guaranteed SOURCE in a DAG.</li>
+      <li>Vertex with LOWEST post# = guaranteed SINK in a DAG.</li>
+    </ul>
+
+    <div class="section-title">Strongly Connected Components (SCC) — Definition</div>
+    <ul>
+      <li>Vertices v and w are strongly connected iff there is a path v→w AND a path w→v. Both directions required.</li>
+      <li>SCC = maximal set of mutually strongly connected vertices. "Maximal" means you can't add any more vertices and preserve the property.</li>
+      <li>Every directed graph is a DAG of its SCCs. The metagraph G_SCC is ALWAYS a DAG. (If two SCCs had a cycle between them, they'd merge into one SCC — contradiction.)</li>
+      <li>The SCC metagraph may initially be a multigraph, but drop duplicates — only simple edges matter.</li>
+      <li>From the lecture example: {A}, {B,E}, {C,F,G}, {D}, {H,I,J,K,L} are the 5 SCCs.</li>
+    </ul>
+
+    <div class="section-title">SCC Algorithm — Kosaraju's (The 2-DFS Algorithm)</div>
+    <p>Runtime: O(n+m) — all 4 steps are linear.</p>
+    <p><strong>Steps:</strong></p>
+    <ol>
+      <li><strong>Construct G^R</strong> — Reverse ALL edges of the original graph G. Same vertex set V, edge set E^R = {(w,v) : (v,w) ∈ E}. Runtime: O(n+m).</li>
+      <li><strong>Run DFS on G^R</strong> — Get post[] values for all vertices from this run on the REVERSED graph. Runtime: O(n+m).</li>
+      <li><strong>Order V by decreasing post#</strong> — Sort vertices of ORIGINAL G by decreasing post[] values from step 2. Runtime: O(n).</li>
+      <li><strong>Run DFS on G (original) in that order</strong> — Process vertices in the decreasing post# order. Each new Explore() call discovers exactly ONE new SCC. Assign ccnum. Runtime: O(n+m).</li>
+    </ol>
+    <p><strong>Why This Works:</strong></p>
+    <ul>
+      <li>Key fact: In ANY directed graph, the vertex with the HIGHEST post# from a DFS run lies in a SOURCE SCC.</li>
+      <li>Problem: We need a vertex in a SINK SCC (to explore and isolate it). Sources are not useful — Explore from a source visits the whole graph.</li>
+      <li>Solution: In G^R, sources and sinks are FLIPPED. A sink SCC in G = a source SCC in G^R.</li>
+      <li>Therefore: Run DFS on G^R → highest post# vertex = source in G^R = SINK in G. Explore from it on G → visits exactly that sink SCC and nothing else.</li>
+    </ul>
+    <p><strong>MC Traps:</strong></p>
+    <ul>
+      <li>&#10060; Why sink SCCs not source? Because Explore from a SOURCE visits the entire graph — can't isolate one SCC. Explore from a SINK visits ONLY that SCC.</li>
+      <li>&#10060; Why reverse graph? Because we can only guarantee finding a SOURCE SCC from post# order. Reversing flips source↔sink.</li>
+      <li>&#10060; The vertex with LOWEST post# in G does NOT guarantee a sink SCC — explicitly disproved with a counterexample.</li>
+      <li>&#10060; SCC output: ccnum[] from the SECOND DFS (step 4) on G. NOT from the DFS on G^R.</li>
+    </ul>
+
+    <div class="section-title">Key Postorder Theorems (Proof-Level Facts)</div>
+    <ul>
+      <li>For SCCs S and S' with edge S→S': max post# in S > max post# in S'. Proof by 2 cases on which vertex z is visited first in S∪S'.</li>
+      <li>Topological sort of SCCs by max post# number in each component — edges go from higher to lower max post#.</li>
+      <li>Vertex with highest post# lies in a SOURCE SCC (in any directed graph, any DFS run).</li>
+      <li>If z is visited first in S∪S' (z∈S): z is root of DFS subtree covering all of S∪S', so z has the max post# in S∪S'.</li>
+      <li>If z is visited first in S∪S' (z∈S'): all of S' finishes before ANY of S is even visited. So all S' post# &lt; all S post#.</li>
+    </ul>
+
+    <div class="section-title">BFS vs Dijkstra's — Quick Reference</div>
+    <div class="table-scroll"><table>
+      <tr><th>Algorithm</th><th>Input</th><th>Output</th><th>Edge Weights</th><th>Runtime</th></tr>
+      <tr><td><strong>BFS</strong></td><td>G=(V,E) + start vertex s</td><td>dist[v]=min edges from s (∞ if unreachable), prev[]</td><td>Unweighted only</td><td>O(n+m)</td></tr>
+      <tr><td><strong>Dijkstra's</strong></td><td>G=(V,E) + start s + edge lengths ℓ(e)>0</td><td>dist[v]=shortest weighted path, prev[]</td><td>Positive weights only</td><td>O((n+m) log n) with min-heap</td></tr>
+      <tr><td><strong>DFS</strong></td><td>G=(V,E), optional start</td><td>ccnum[], prev[], pre[], post[], visited[]</td><td>Unweighted</td><td>O(n+m)</td></tr>
+    </table></div>
+    <ul>
+      <li>BFS = DFS but explores layer by layer instead of depth-first.</li>
+      <li>Dijkstra's = BFS framework + min-heap priority queue. The heap adds the log n factor.</li>
+      <li>Dijkstra's FAILS on negative edge weights — use Bellman-Ford (DP3) instead.</li>
+    </ul>
+
+  </div></div>
+</div>
+
+<!-- ===== GR2 — 2-Satisfiability (2-SAT) ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">GR2 — 2-Satisfiability (2-SAT) <span class="count">SAT Problem, CNF, Implication Graph, SCC-based Solver</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">HIGH YIELD — The 2-SAT↔SCC reduction is a classic exam topic. Know the graph construction, the satisfiability theorem, and the algorithm steps cold.</p>
+
+    <div class="section-title">SAT Terminology — Must Know</div>
+    <ul>
+      <li><strong>Variable:</strong> boolean variable x&#7522; that can be True or False. n variables → x1, x2, …, xn.</li>
+      <li><strong>Literal:</strong> a variable OR its negation. n variables → 2n literals: x1, x&#x0304;1, x2, x&#x0304;2, …. Satisfying literal x&#7522; means setting x&#7522;=True. Satisfying x&#x0304;&#7522; means setting x&#7522;=False.</li>
+      <li><strong>Clause:</strong> an OR of several literals. Example: (x3 ∨ x&#x0304;5 ∨ x&#x0304;1 ∨ x2). Satisfied if at least ONE literal in it is True.</li>
+      <li><strong>CNF</strong> = Conjunctive Normal Form: an AND of m clauses. f = clause1 ∧ clause2 ∧ … ∧ clause_m. Satisfied when ALL clauses are satisfied.</li>
+      <li>∧ = AND, ∨ = OR. Memory trick: ∧ symbol looks like the letter A for AND.</li>
+      <li>SAT input: formula f in CNF with n variables, m clauses. SAT is NP-complete. k-SAT is NP-complete for all k≥3. 2-SAT is solvable in polynomial time.</li>
+    </ul>
+
+    <div class="section-title">k-SAT Complexity Dichotomy</div>
+    <div class="table-scroll"><table>
+      <tr><th>k</th><th>Complexity</th></tr>
+      <tr><td>1</td><td>Trivially linear O(n)</td></tr>
+      <tr><td>2</td><td>Polynomial — O(n+m) via SCC</td></tr>
+      <tr><td>3</td><td>NP-complete</td></tr>
+      <tr><td>k≥3</td><td>NP-complete</td></tr>
+      <tr><td>SAT (any size)</td><td>NP-complete</td></tr>
+    </table></div>
+    <p><strong>Key Fact:</strong> This is the dichotomy theorem for SAT. The boundary is exactly at k=2 vs k=3.</p>
+    <p><strong>Exam Hint:</strong> MC trap: "1-SAT is also easy" — True! 1-SAT is trivially linear. The hard boundary is k=3.</p>
+
+    <div class="section-title">Simplifying Input — Eliminating Unit Clauses</div>
+    <ul>
+      <li>Unit clause = clause with exactly 1 literal. Example: (x&#x0304;1) forces x1=False. There is only ONE way to satisfy a unit clause.</li>
+      <li>Elimination procedure: (1) Take unit clause with literal a. (2) Set a=True. (3) Remove all clauses containing a. (4) Remove a&#x0304; from all other clauses. Repeat until no unit clauses remain.</li>
+      <li>f is satisfiable ↔ f' (after unit elimination) is satisfiable.</li>
+      <li>Result: Can assume all clauses are of size EXACTLY 2 for 2-SAT algorithm.</li>
+    </ul>
+
+    <div class="section-title">The Implication Graph G — How to Build It</div>
+    <p>Runtime: O(n+m) to construct.</p>
+    <ul>
+      <li>Create 2n vertices — one vertex for each literal: x1, x&#x0304;1, x2, x&#x0304;2, …, xn, x&#x0304;n.</li>
+      <li>For each clause (α ∨ β), add 2 directed edges:
+        <ul>
+          <li>Edge 1: α&#x0304; → β (if α is false, then β must be true)</li>
+          <li>Edge 2: β&#x0304; → α (if β is false, then α must be true)</li>
+        </ul>
+      </li>
+      <li>Result: G has 2n vertices and 2m edges.</li>
+      <li>Why This Works: Clause (α ∨ β) is logically equivalent to (¬α → β) AND (¬β → α). An edge a→b means "if literal a is True, then b must also be True."</li>
+    </ul>
+    <p><strong>MC Traps:</strong></p>
+    <ul>
+      <li>&#10060; For clause (α ∨ β): edges are α&#x0304;→β and β&#x0304;→α. NOT α→β. The arrow goes from the NEGATION.</li>
+      <li>&#10060; The graph has 2n vertices and exactly 2m edges — exactly 2 per clause.</li>
+    </ul>
+
+    <div class="section-title">The Satisfiability Theorem — Core of 2-SAT</div>
+    <p><strong>Theorem:</strong></p>
+    <ul>
+      <li>f is NOT satisfiable ↔ ∃i such that x&#7522; and x&#x0304;&#7522; are in the same SCC</li>
+      <li>f IS satisfiable ↔ ∀i, x&#7522; and x&#x0304;&#7522; are in different SCCs</li>
+      <li>Proof (UNSAT direction): If x&#7522; and x&#x0304;&#7522; are in the same SCC: paths x&#7522;→…→x&#x0304;&#7522; and x&#x0304;&#7522;→…→x&#7522; both exist. Setting x&#7522;=True forces x&#7522;=False (contradiction). No valid assignment exists.</li>
+    </ul>
+    <p><strong>Decision Rule:</strong> Check if any variable x&#7522; has both x&#7522; and x&#x0304;&#7522; in the SAME SCC. If yes → output NO. If no → run assignment algorithm.</p>
+    <p><strong>Exam Hint:</strong> MC trap: "If there's a path from x&#7522; to x&#x0304;&#7522;, the formula is UNSAT." WRONG — a path in only ONE direction is not sufficient. You need BOTH directions (same SCC).</p>
+
+    <div class="section-title">2-SAT Algorithm — Full Steps</div>
+    <p>Runtime: O(n+m) — all steps are linear.</p>
+    <ol>
+      <li><strong>Simplify f</strong> — Eliminate all unit clauses.</li>
+      <li><strong>Build implication graph G</strong> — 2n vertices, 2m edges.</li>
+      <li><strong>Run SCC on G</strong> — Use Kosaraju's algorithm. Get ccnum[] for all 2n vertices.</li>
+      <li><strong>Check satisfiability</strong> — For every i: if ccnum[x&#7522;] == ccnum[x&#x0304;&#7522;] → output NO (UNSAT). If all pairs are in different SCCs, proceed to step 5.</li>
+      <li><strong>Assign values by SCC topo order</strong> — Find source SCC S'. Set S'=False. Its complement S&#x0304;' is a sink SCC — set S&#x0304;'=True. Remove both. Repeat until empty.</li>
+    </ol>
+    <p>Key Structural Fact: If ∀i, x&#7522; and x&#x0304;&#7522; in different SCCs, then: S is a sink SCC ↔ S&#x0304; is a source SCC.</p>
+    <p><strong>MC Traps:</strong></p>
+    <ul>
+      <li>&#10060; Step 5 uses SOURCE SCC set to False — NOT sink set to True directly.</li>
+      <li>&#10060; ccnum=1 is a SINK. The source SCC has the HIGHEST ccnum value.</li>
+      <li>&#10060; You only need ONE run of SCC on G (the implication graph).</li>
+      <li>&#10060; Assignment rule: x&#7522; = True if ccnum[x&#x0304;&#7522;] &lt; ccnum[x&#7522;].</li>
+    </ul>
+
+    <div class="section-title">Building the Implication Graph — Worked Example</div>
+    <p>Formula: f = (x&#x0304;1 ∨ x&#x0304;2) ∧ (x2 ∨ x3) ∧ (x&#x0304;3 ∨ x&#x0304;1) — 3 variables, 3 clauses, 6 vertices, 6 edges.</p>
+    <div class="table-scroll"><table>
+      <tr><th>Clause</th><th>Edge 1</th><th>Edge 2</th></tr>
+      <tr><td>(x&#x0304;1 ∨ x&#x0304;2)</td><td>x1 → x&#x0304;2</td><td>x2 → x&#x0304;1</td></tr>
+      <tr><td>(x2 ∨ x3)</td><td>x&#x0304;2 → x3</td><td>x&#x0304;3 → x2</td></tr>
+      <tr><td>(x&#x0304;3 ∨ x&#x0304;1)</td><td>x3 → x&#x0304;1</td><td>x1 → x&#x0304;3</td></tr>
+    </table></div>
+    <p>Path x1→x&#x0304;2→x3→x&#x0304;1 shows: if x1=True, then x1 must be False → contradiction. So x1 CANNOT be True. Note: Path x1→x&#x0304;1 alone does NOT make formula UNSAT. Only if x&#x0304;1→x1 also exists (same SCC) is it UNSAT.</p>
+
+  </div></div>
+</div>
+
+<!-- ===== GR3 — Minimum Spanning Tree ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">GR3 — Minimum Spanning Tree <span class="count">Greedy Approach, Cut Property, Kruskal's, Prim's</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">HIGH YIELD — The Cut Property proof is the core correctness argument. Kruskal's runtime and Union-Find are frequent MC targets.</p>
+
+    <div class="section-title">MST Problem Definition</div>
+    <ul>
+      <li>Input: undirected G=(V,E) with edge weights w(e). Weights can be any real numbers. Graph must be connected.</li>
+      <li>Output: minimum weight spanning tree T ⊆ E. Weight of T = sum of w(e) for all e∈T.</li>
+      <li>A spanning tree is a connected acyclic subgraph containing ALL n vertices. These conditions force exactly n−1 edges.</li>
+      <li>The MST minimizes total edge weight among ALL spanning trees of G.</li>
+    </ul>
+
+    <div class="section-title">Tree Properties — Must Memorize</div>
+    <ul>
+      <li>A tree on n vertices has EXACTLY n−1 edges.</li>
+      <li>In a tree, there is EXACTLY ONE path between every pair of vertices.</li>
+      <li>Any connected G=(V,E) with |E|=|V|−1 is a tree.</li>
+      <li>Adding any edge to a tree creates EXACTLY one cycle.</li>
+      <li>Removing any edge from a cycle in a tree (after adding one edge) gives a new tree. Key construction in Cut Property proof: T' = T ∪ {e*} − {e'}.</li>
+    </ul>
+
+    <div class="section-title">Cut Definition</div>
+    <ul>
+      <li>A cut of G=(V,E) is a partition of vertices into two non-empty sets S and S&#x0304; (= V∖S).</li>
+      <li>Cut edges: cut(S, S&#x0304;) = {(v,w) ∈ E : v∈S, w∈S&#x0304;} — edges with ONE endpoint on each side.</li>
+      <li>An edge e "crosses the cut" means e ∈ cut(S, S&#x0304;).</li>
+    </ul>
+
+    <div class="section-title">Cut Property Lemma — The Core Theorem</div>
+    <p><strong>Lemma:</strong> Let X ⊆ T for some MST T. Let S ⊆ V such that no edge of X crosses cut(S, S&#x0304;). Let e* be the minimum weight edge in cut(S, S&#x0304;). Then X ∪ {e*} ⊆ T' for some MST T'.</p>
+    <p><strong>Proof:</strong></p>
+    <ul>
+      <li><strong>Case 1 (easy):</strong> If e* ∈ T, set T'=T. Done.</li>
+      <li><strong>Case 2 (hard):</strong> If e* ∉ T, construct T' = T ∪ {e*} − {e'}. Adding e* to T creates a cycle C. Cycle C must contain some edge e' that crosses cut(S,S&#x0304;). Remove e'. Show T' is a tree (connected + n−1 edges). Show w(T') ≤ w(T): w(T')=w(T)+w(e*)−w(e') ≤ w(T) because e* is min weight cut edge so w(e*) ≤ w(e').</li>
+    </ul>
+    <p><strong>Key Fact:</strong> Any minimum weight edge across ANY cut is part of SOME MST. This single lemma proves BOTH Kruskal's and Prim's correct.</p>
+    <p><strong>Exam Hint:</strong> MC trap: "The min weight cut edge must be in EVERY MST." WRONG — it must be in SOME MST.</p>
+
+    <div class="section-title">Kruskal's Algorithm</div>
+    <p>Runtime: O(m log n) — dominated by sorting.</p>
+    <ol>
+      <li>Sort edges by increasing weight. O(m log m) = O(m log n).</li>
+      <li>Initialize X = ∅.</li>
+      <li>Process each edge e=(v,w) in sorted order: If adding e to X does NOT create a cycle, add it. Use Union-Find to check: if c(v) ≠ c(w), add and union. If c(v) = c(w), skip.</li>
+      <li>Return X — it's the MST.</li>
+    </ol>
+    <p>Why This Works: At each step, X ⊆ some MST T. When adding e*=(v,w), set S = component of v. No X-edge crosses S↔S&#x0304;. e* has minimum weight among all crossing edges → Cut Property applies.</p>
+    <p><strong>MC Traps:</strong></p>
+    <ul>
+      <li>&#10060; Runtime is O(m log n), NOT O(n²).</li>
+      <li>&#10060; Kruskal's processes edges globally sorted — not vertex-by-vertex. Prim's grows a tree from one vertex.</li>
+      <li>&#10060; O(m log m) = O(m log n) because m ≤ n², so log m ≤ 2 log n.</li>
+    </ul>
+
+    <div class="section-title">Prim's Algorithm — Brief Overview</div>
+    <ul>
+      <li>Prim's grows an MST one vertex at a time from a starting vertex, always adding the minimum weight edge from current tree to a new vertex.</li>
+      <li>Correctness also follows from the Cut Property Lemma. At each step S = set of vertices in tree. No X-edge crosses S↔S&#x0304;. Prim's picks min weight crossing edge.</li>
+      <li>Prim's is structurally identical to Dijkstra's — replace edge weight with distance metric. Both use a min-heap. Same O((n+m) log n) runtime.</li>
+      <li>Both Kruskal's and Prim's are GREEDY algorithms. The Cut Property makes the greedy choice globally optimal.</li>
+    </ul>
+
+    <div class="section-title">Greedy: When It Works vs When It Fails</div>
+    <div class="table-scroll"><table>
+      <tr><th>Problem</th><th>Greedy Works?</th><th>Why</th></tr>
+      <tr><td>MST (Kruskal's, Prim's)</td><td>✅ Yes</td><td>Cut Property guarantees local min = global optimum</td></tr>
+      <tr><td>Dijkstra's (positive weights)</td><td>✅ Yes</td><td>Shortest path subpaths are also shortest paths</td></tr>
+      <tr><td>Knapsack</td><td>❌ No</td><td>No analogous cut property; DP needed</td></tr>
+      <tr><td>Shortest paths with negative weights</td><td>❌ No</td><td>Use Bellman-Ford instead</td></tr>
+    </table></div>
+
+  </div></div>
+</div>
+
+<!-- ===== DP3 — Shortest Paths via Dynamic Programming ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">DP3 — Shortest Paths via Dynamic Programming <span class="count">Bellman-Ford, Floyd-Warshall, Negative Cycles, Arbitrage</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">HIGH YIELD — Know both DP recurrences cold (Bellman-Ford: condition on edges; Floyd-Warshall: condition on intermediate vertices). Know how to detect negative weight cycles with each.</p>
+
+    <div class="section-title">Problem Setup &amp; Why Dijkstra's Falls Short</div>
+    <ul>
+      <li>Setting: directed graph G with edge weights w(e), which may be negative. Start vertex s.</li>
+      <li>Goal: compute dist(z) = length of shortest path from s to z, for ALL z ∈ V.</li>
+      <li>Dijkstra's requires ALL edge weights to be positive. With negative edges it is NOT guaranteed correct. Dijkstra's runs in O((n+m) log n) — faster than Bellman-Ford — but correctness breaks down.</li>
+      <li>If a graph has a negative weight cycle reachable from s, shortest paths are NOT well-defined. The algorithm must detect this case.</li>
+    </ul>
+
+    <div class="section-title">Negative Weight Cycles</div>
+    <p><strong>Theorem:</strong> If G contains a negative weight cycle reachable from s, shortest paths from s are undefined (−∞). A cycle with total weight &lt; 0 can be traversed any number of times, making any path through it arbitrarily short.</p>
+    <p><strong>Key Fact:</strong> Full problem has TWO outputs: (1) Detect negative weight cycle reachable from s, if one exists. (2) If none exists, return dist(z) for all z ∈ V.</p>
+    <p><strong>Exam Hint:</strong> MC trap: "Bellman-Ford finds all negative weight cycles." WRONG — Bellman-Ford only finds cycles REACHABLE FROM s. Floyd-Warshall finds ANY negative cycle in the entire graph.</p>
+
+    <div class="section-title">Bellman-Ford — Subproblem &amp; Recurrence</div>
+    <p><strong>Subproblem:</strong> D(i, z) = length of shortest path from s to z using AT MOST i edges.</p>
+    <p><strong>Recurrence:</strong></p>
+    <ul>
+      <li>Base case: D(0, s) = 0; D(0, z) = ∞ for z ≠ s.</li>
+      <li>Recurrence (i ≥ 1): D(i, z) = min { D(i−1, z), min over (y,z)∈E { D(i−1, y) + ω(y,z) } }</li>
+      <li>Final answer: D(n−1, z) = dist(z) for all z. No negative cycle → shortest path uses ≤ n−1 edges.</li>
+    </ul>
+    <p><strong>Exam Hint:</strong> DP parameter = NUMBER OF EDGES (i). Table is 2D: n rows × n columns. Rows 0 through n−1.</p>
+
+    <div class="section-title">Negative Cycle Detection — Bellman-Ford</div>
+    <ul>
+      <li>Run one extra iteration to compute row i = n (stopping at n instead of n−1).</li>
+      <li>Detection rule: if D(n, z) &lt; D(n−1, z) for ANY z ∈ V → negative weight cycle reachable from s.</li>
+      <li>If D(n,z) = D(n−1,z) for ALL z → no negative cycle → return D(n−1,·).</li>
+      <li>Example trace (6 vertices, cycle a→b→c→a weight −1): i=5 row: s=0, a=4, b=7, c=2, d=12, e=7. i=6 row: c becomes 1, d becomes 11. Values differ → negative cycle detected.</li>
+    </ul>
+
+    <div class="section-title">Floyd-Warshall — Subproblem &amp; Recurrence</div>
+    <p><strong>Subproblem:</strong> D(i, s, t) = shortest path from s to t using only vertices {1,…,i} as INTERMEDIATE vertices.</p>
+    <p><strong>Recurrence:</strong></p>
+    <ul>
+      <li>Base case (i=0): no intermediates. D(0, s, t) = ω(s,t) if edge (s,t)∈E, else ∞. D(0, s, s) = 0.</li>
+      <li>Recurrence (i ≥ 1): D(i, s, t) = min { D(i−1, s, t), D(i−1, s, i) + D(i−1, i, t) }</li>
+      <li>Final answer: D(n, s, t) = dist(s, t) for ALL pairs. Table is 3D: O(n³) entries, each O(1) → total O(n³).</li>
+    </ul>
+    <p><strong>Exam Hint:</strong> DP parameter = SET OF INTERMEDIATE VERTICES (numbered 1…i). This is the conceptual difference from Bellman-Ford (which conditions on edges). Both sub-paths use i−1, not i, as the intermediate set.</p>
+
+    <div class="section-title">Negative Cycle Detection — Floyd-Warshall</div>
+    <ul>
+      <li>Detection rule: check if D(n, y, y) &lt; 0 for ANY vertex y. A negative diagonal means a negative cycle through y was found.</li>
+      <li>Floyd-Warshall detects ANY negative cycle in the ENTIRE graph — including cycles unreachable from any single start vertex.</li>
+      <li>Example: cycle a→b→c→a weight −1 → D(n,a,a)=D(n,b,b)=D(n,c,c)=−1.</li>
+    </ul>
+
+    <div class="section-title">Bellman-Ford vs. Floyd-Warshall</div>
+    <div class="table-scroll"><table>
+      <tr><th>Algorithm</th><th>Scope</th><th>Runtime</th><th>DP Condition</th><th>Negative Cycle Detection</th></tr>
+      <tr><td><strong>Bellman-Ford</strong></td><td>Single-source</td><td>O(nm)</td><td>Number of edges</td><td>Reachable from s only: check D(n,z) &lt; D(n−1,z)</td></tr>
+      <tr><td><strong>Floyd-Warshall</strong></td><td>All-pairs</td><td>O(n³)</td><td>Intermediate vertices</td><td>Any cycle in entire graph: check D(n,y,y) &lt; 0</td></tr>
+    </table></div>
+    <p>Naïve all-pairs via n × Bellman-Ford: O(n²m) ≤ O(n⁴). Floyd-Warshall is always O(n³) — better for dense graphs.</p>
+
+    <div class="section-title">Arbitrage Reduction — Classic Application</div>
+    <ul>
+      <li>Arbitrage problem: detect a cycle of currency exchanges that returns more money than you started with.</li>
+      <li>Reduction: Arbitrage → Negative Weight Cycle. Build graph with currencies as vertices; edge weight = −log(exchange rate). A profitable cycle (product of rates > 1) maps to a negative weight cycle (sum of −log rates &lt; 0).</li>
+      <li>Then use Bellman-Ford or Floyd-Warshall as a black box to detect the negative weight cycle. No modification to the algorithm.</li>
+      <li>Reductions are a central theme — pattern: Arbitrage → Negative Weight Cycles → BF or FW.</li>
+    </ul>
+
+  </div></div>
+</div>
+
+<!-- ===== MF1 — Ford-Fulkerson Max Flow Algorithm ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">MF1 — Ford-Fulkerson Max Flow Algorithm <span class="count">Max Flow Problem, Residual Network, Ford-Fulkerson, Edmonds-Karp</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">HIGH YIELD — Know the max-flow constraints cold (capacity + conservation). Know how to build a residual network, why backward edges exist, and the runtime difference between Ford-Fulkerson O(mC) and Edmonds-Karp O(nm²).</p>
+
+    <div class="section-title">Max-Flow Problem Setup</div>
+    <ul>
+      <li>Setting: directed graph G=(V,E), source s, sink t, positive capacity c&#7497; > 0 for each edge.</li>
+      <li>Variable: f&#7497; = flow along edge e. Goal: maximize total flow from s to t.</li>
+      <li>Capacity constraint: 0 ≤ f&#7497; ≤ c&#7497; for all e.</li>
+      <li>Conservation of flow: for every v ≠ s, t: flow-in = flow-out. Nothing created or destroyed at intermediate vertices.</li>
+      <li>Cycles are OK — unlike negative weight cycles in shortest paths, flow cycles are harmless.</li>
+    </ul>
+
+    <div class="section-title">Anti-Parallel Edges — Pre-Process Before Running</div>
+    <ul>
+      <li>Anti-parallel edges: both (a→b) and (b→a) present. Must remove before running Ford-Fulkerson.</li>
+      <li>Fix: replace b→a with a two-edge path b→f→a via auxiliary vertex f. Both new edges get original capacity of b→a.</li>
+    </ul>
+
+    <div class="section-title">Residual Network — The Key Idea</div>
+    <p><strong>Definition:</strong> Given flow network G with capacities c&#7497; and current flow f&#7497;, the residual network G&#7584; = (V, E&#7584;):</p>
+    <ul>
+      <li><strong>Forward edge</strong> v→w: if f_{vw} &lt; c_{vw}, add v→w with capacity c_{vw} − f_{vw}</li>
+      <li><strong>Backward edge</strong> w→v: if f_{vw} > 0, add w→v with capacity f_{vw}</li>
+    </ul>
+    <p><strong>Key Fact:</strong> The naive approach (forward edges only) gets stuck in local optima. Backward edges let the algorithm undo bad choices and find the global optimum.</p>
+    <p><strong>Exam Hint:</strong> MC trap: "Backward edges mean reverse flow." WRONG — backward edge w→v with capacity f_{vw} means we can DECREASE flow on v→w by up to f_{vw}. It is cancellation, not reverse flow.</p>
+
+    <div class="section-title">Ford-Fulkerson Algorithm — Exact Steps</div>
+    <p>Runtime: O(mC) where C = size of max flow, m = number of edges.</p>
+    <ol>
+      <li><strong>Initialize flow:</strong> Set f&#7497; = 0 for all e ∈ E.</li>
+      <li><strong>Build residual network</strong> G&#7584; from current flow f.</li>
+      <li><strong>Find augmenting path P</strong> in G&#7584; using DFS or BFS. If NO path exists: output f and STOP — flow is maximum.</li>
+      <li><strong>Compute bottleneck</strong> c(P) = minimum residual capacity along path P.</li>
+      <li><strong>Augment f along P</strong> by c(P): for each forward edge e in P: f&#7497; += c(P). For each backward edge (reverse of e): f&#7497; -= c(P).</li>
+      <li><strong>Repeat</strong> from Step 2.</li>
+    </ol>
+    <p><strong>MC Traps:</strong></p>
+    <ul>
+      <li>&#10060; Ford-Fulkerson requires INTEGER capacities. With non-integer capacities it may not terminate. Use Edmonds-Karp.</li>
+      <li>&#10060; Runtime O(mC) is pseudo-polynomial. C can be exponentially large.</li>
+    </ul>
+
+    <div class="section-title">Max-Flow Min-Cut Theorem</div>
+    <p><strong>Theorem:</strong> max flow value = min cut capacity</p>
+    <ul>
+      <li><strong>Upper bound:</strong> An s-t cut (S, S&#x0304;) bounds any flow — each crossing edge carries ≤ its capacity. Therefore max flow ≤ min cut.</li>
+      <li><strong>Matching:</strong> When Ford-Fulkerson terminates, let S = vertices reachable from s in G&#7584;. All edges from S to S&#x0304; are fully saturated. Current flow = cut capacity.</li>
+    </ul>
+    <p><strong>Corollary:</strong> Ford-Fulkerson is correct. When no augmenting path exists, flow = min cut = maximum.</p>
+    <p>Min cut edges = fully saturated edges crossing from reachable to unreachable vertices in final residual graph. BFS from s on G&#7584; after completion → S = reachable. Min cut = edges from S to V\S in original G.</p>
+
+    <div class="section-title">Edmonds-Karp — The Polynomial Alternative</div>
+    <ul>
+      <li>Edmonds-Karp = Ford-Fulkerson + always use BFS (shortest augmenting path by edge count). Only difference: BFS instead of any DFS/BFS to find augmenting path.</li>
+      <li>Runtime: O(nm²) — fully polynomial, independent of capacity values. Rounds bounded by O(nm) not O(C). Each round O(m) for BFS.</li>
+      <li>No integer capacity assumption needed. Works for fractional capacities.</li>
+      <li>Outputs identical to Ford-Fulkerson: flow[] per edge and C = total max flow.</li>
+    </ul>
+
+    <div class="section-title">Ford-Fulkerson vs Edmonds-Karp</div>
+    <div class="table-scroll"><table>
+      <tr><th>Algorithm</th><th>Capacity Requirement</th><th>Runtime</th><th>Path Selection</th></tr>
+      <tr><td><strong>Ford-Fulkerson</strong></td><td>Integer capacities required</td><td>O(mC) — pseudo-polynomial</td><td>DFS or BFS (any path)</td></tr>
+      <tr><td><strong>Edmonds-Karp</strong></td><td>Any positive capacities</td><td>O(nm²) — polynomial</td><td>BFS only (shortest path)</td></tr>
+    </table></div>
+    <p>Lecture example: max flow = 12 in 3 iterations: s→a→d→t (5), s→c→f→t (5), s→b→c→f→t (2).</p>
+    <p>Min cut in lecture example: {d→t, f→t} with total capacity 5+7=12.</p>
+
+  </div></div>
+</div>
+
+<!-- ===== MF2 — Max-Flow Min-Cut Theorem: Proof ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">MF2 — Max-Flow Min-Cut Theorem: Proof <span class="count">Full Proof, Cut Construction, Ford-Fulkerson Correctness</span></div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">HIGH YIELD — Know both proof directions, the key claim size(f) = f_out(L) − f_in(L), how to construct the min cut from a max flow, and the O(n+m) verification method.</p>
+
+    <div class="section-title">Verification &amp; Stopping Condition</div>
+    <ul>
+      <li>Ford-Fulkerson stops when NO augmenting path (no s→t path) exists in residual graph G&#7584;.</li>
+      <li>Lemma: If flow f* has no augmenting path in G&#7584;*, then f* is a MAX FLOW.</li>
+      <li>Verifying a max flow: O(n+m). Build residual G&#7584; (O(n+m)), run DFS from s. If t unreachable → max flow. If t reachable → augmenting path found → NOT max flow.</li>
+    </ul>
+
+    <div class="section-title">Min st-Cut Definition</div>
+    <ul>
+      <li>An st-cut (L, R) is a partition of V where s ∈ L and t ∈ R. L does NOT need to be connected.</li>
+      <li>Capacity of cut (L,R) = sum of capacities of edges FROM L TO R only. Edges R→L are NOT counted. Direction matters: c(L,R) ≠ c(R,L).</li>
+      <li>Lecture example — L={s,a,b,f}: capacity = 27. L=V\{t}: capacity = 5+7 = 12 (minimum). Min cut capacity = max flow value = 12.</li>
+      <li>st-cut vs min-cut: min st-cut separates specific s from t. General min-cut has no s,t requirement.</li>
+    </ul>
+
+    <div class="section-title">Key Claim: size(f) = f_out(L) − f_in(L)</div>
+    <p><strong>Theorem:</strong> For any flow f and any st-cut (L,R): size(f) = f_out(L) − f_in(L)</p>
+    <p><strong>Proof:</strong></p>
+    <ol>
+      <li>Expand f_out(L) − f_in(L) to sum over all v ∈ L of [flow_out(v) − flow_in(v)].</li>
+      <li>For all v ∈ L\{s}: flow_out(v) = flow_in(v) by conservation of flow → each term = 0.</li>
+      <li>Only s survives: flow_out(s) − flow_in(s) = flow_out(s) − 0 = size(f). QED.</li>
+    </ol>
+    <p><strong>Key Consequence:</strong> size(f) ≤ f_out(L) ≤ capacity(L,R). First ≤ drops non-negative f_in(L). Second ≤ uses f&#7497; ≤ c&#7497; per edge.</p>
+    <p><strong>Exam Hint:</strong> Proof uses only two facts: (1) flow conservation at internal vertices, (2) no flow enters s. Works for ANY flow and ANY cut simultaneously.</p>
+
+    <div class="section-title">Max-Flow = Min-Cut Theorem (Full Proof)</div>
+    <p><strong>Theorem:</strong> For any flow network: max flow size = min st-cut capacity</p>
+    <ul>
+      <li><strong>Direction 1 (max ≤ min):</strong> For ANY f and ANY cut (L,R): size(f) ≤ capacity(L,R) by the key claim above. Taking max over f and min over cuts: max-flow ≤ min-cut.</li>
+      <li><strong>Direction 2 (max ≥ min):</strong> Take f* from Ford-Fulkerson (no augmenting path in G&#7584;*). Construct L = vertices reachable from s in G&#7584;*. Then t ∉ L (no augmenting path) → valid st-cut. Every L→R edge in original G is fully saturated (f=c). Every R→L edge carries zero flow. Therefore size(f*) = capacity(L,R). So max-flow ≥ size(f*) = capacity(L,R) ≥ min-cut.</li>
+    </ul>
+    <p><strong>Corollary 1:</strong> Ford-Fulkerson and Edmonds-Karp are correct — any algorithm stopping on no-augmenting-path outputs a max flow.</p>
+    <p><strong>Corollary 2:</strong> Given max flow f*, construct min st-cut in O(n+m): L = reachable from s in G&#7584;*.</p>
+    <p><strong>Exam Hint:</strong> MC trap: "The constructed cut is THE ONLY min cut." WRONG — there may be multiple min cuts. Also: max-flow ≤ ANY cut (not just min cut).</p>
+
+    <div class="section-title">Constructing Min Cut from Max Flow</div>
+    <p>Runtime: O(n+m) after max flow is computed.</p>
+    <ol>
+      <li><strong>Run Ford-Fulkerson / Edmonds-Karp</strong> to completion. Obtain max flow f*.</li>
+      <li><strong>Build final residual graph</strong> G&#7584;* — forward edges with remaining capacity, backward edges for positive flow.</li>
+      <li><strong>BFS/DFS from s on G&#7584;*</strong> — find all vertices reachable from s. Call this set L.</li>
+      <li><strong>Set R = V \ L</strong> — unreachable vertices. By stopping condition, t ∈ R.</li>
+      <li><strong>Identify min cut edges</strong> — all edges (v→w) in ORIGINAL graph G where v∈L and w∈R. These are exactly fully saturated edges (flow = capacity).</li>
+    </ol>
+    <p><strong>Why This Works:</strong></p>
+    <ul>
+      <li>Every L→R edge in original G is fully saturated: if it had remaining capacity it would appear in G&#7584;* and w would be in L — contradiction.</li>
+      <li>Every R→L edge carries zero flow: if positive, backward edge would appear in G&#7584;* making z reachable — contradiction.</li>
+    </ul>
+    <p><strong>MC Traps:</strong></p>
+    <ul>
+      <li>&#10060; Min cut edges are in the ORIGINAL graph, not the residual graph.</li>
+      <li>&#10060; All L→R edges in original G are FULLY SATURATED. All R→L edges carry ZERO flow.</li>
+      <li>&#10060; Set L is defined by reachability in G&#7584;*, not in G — L may not be connected in G.</li>
+    </ul>
+
+  </div></div>
+</div>

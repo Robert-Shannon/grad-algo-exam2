@@ -1,0 +1,308 @@
+<h1>Office Hours — Session Notes</h1>
+<p class="subtitle">Key takeaways from TA and professor sessions.</p>
+
+<!-- Session 1 -->
+<div class="oh-session">
+  <div class="oh-session-header">
+    <div class="oh-title">Session 1 — Intro to Graphs: Adjacency Lists, Metagraphs &amp; Operations</div>
+    <div class="oh-date">02/22 — TA Tim West</div>
+  </div>
+  <div class="oh-session-body"><div class="oh-session-body-inner">
+    <p style="color:var(--text-dim);font-size:14px;margin-bottom:16px;">First graphs session. No homework out yet (HW released next day). Focus: foundational graph representations, adjacency list mechanics, metagraph definition, and what operations cost O(n+m). Black box algorithms deferred to future sessions.</p>
+
+    <div class="oh-topic">
+      <h4>A Graph IS an Adjacency List — Not Two Separate Sets</h4>
+      <p>G = (V, E) looks like two sets, but it is <strong>ALWAYS</strong> represented as <strong>ONE combined adjacency list</strong>. V and E are not stored separately. Each index in the array = a vertex. Each linked list at that index = the neighbors of that vertex.</p>
+      <p>Could also be an adjacency matrix — same principle applies. One structure encodes both V and E.</p>
+      <div class="exam-hint">Exam Hint: "If asked 'what is the data structure for a graph?' — the answer is an adjacency list, not 'a set of vertices and a set of edges.'"</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Simple Graph Rules — What Is and Is NOT Allowed</h4>
+      <div class="table-scroll"><table>
+        <tr><th>Rule</th><th>Detail</th></tr>
+        <tr><td>✗ Self-edges: edge from A to A</td><td>NOT allowed in simple graphs. All adjacency lists in this course are simple — no self-edges ever.</td></tr>
+        <tr><td>✗ Multi-edges: two edges between the same pair in the same direction</td><td>NOT allowed in simple graphs. Duplicate edges (same u→v twice) are invalid.</td></tr>
+        <tr><td>✗ Thinking opposing directed edges (u→v AND v→u) are multi-edges</td><td><strong>ALLOWED.</strong> Having both u→v and v→u in a directed graph is valid — they are two different edges in opposite directions. This does NOT violate simple graph rules.</td></tr>
+      </table></div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Undirected vs Directed: How Edges Are Encoded</h4>
+      <p><strong>Undirected:</strong> edge {u,v} stored TWICE — in adj[u] AND adj[v]. Total entries = 2m.</p>
+      <p><strong>Directed:</strong> edge u→v stored ONCE — in adj[u] only. Total entries = m.</p>
+      <p>Finding all INCOMING edges of v in a directed graph requires scanning all other vertices' lists — O(n+m). This is why "looking backwards" is expensive and why we build G^R for SCC.</p>
+      <div class="exam-hint">Exam Hint: "MC trap: 'How many times does edge (A,B) appear in an undirected adjacency list?' — Answer: 2. In a directed adjacency list for A→B: 1 (only in A's list)."</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>What Is a Metagraph?</h4>
+      <p>The metagraph G_SCC is just <strong>ANOTHER adjacency list</strong>. It follows all the same simple graph rules (no self-edges, no multi-edges) and is <strong>ALWAYS a DAG</strong>. Each "vertex" in the array represents one SCC.</p>
+      <p>To find which original vertices belong to SCC metanode k: look up all v where ccnum[v] == k. The metagraph MAY initially have multi-edges between metanodes — drop duplicates.</p>
+      <div class="exam-hint">Exam Hint: "The metagraph is ALWAYS a DAG — no cycles allowed. This is guaranteed by the definition of SCCs (if two SCCs had a cycle between them, they'd merge into one)."</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Runtime of Common Graph Operations</h4>
+      <div class="table-scroll"><table>
+        <tr><th>#</th><th>Operation</th><th>Runtime</th><th>Notes</th></tr>
+        <tr><td>1</td><td>Build adjacency list from edge list</td><td>O(n+m)</td><td>Iterate over all n vertices and m edges once.</td></tr>
+        <tr><td>2</td><td>Reverse a directed graph G to get G^R</td><td>O(n+m)</td><td>Iterate over all edges and flip direction.</td></tr>
+        <tr><td>3</td><td>Build subgraph (remove/keep specific vertices or edges)</td><td>O(n+m)</td><td>Scan the adjacency list once and copy only relevant entries.</td></tr>
+        <tr><td>4</td><td>Convert MST edge list to adjacency list</td><td>O(n+m)</td><td>MST has n-1 edges. Building its adjacency list is O(n+m).</td></tr>
+        <tr><td>5</td><td>Look up ccnum[v] for a specific vertex v</td><td>O(1)</td><td>ccnum[] is an array indexed by vertex — direct lookup.</td></tr>
+        <tr><td>6</td><td>Find all vertices in SCC k (given ccnum[])</td><td>O(n)</td><td>Scan all n vertices and collect those where ccnum[v] == k.</td></tr>
+        <tr><td>7</td><td>Find all INCOMING edges to vertex v in a directed graph</td><td>O(n+m)</td><td>Must scan all adjacency lists since only outgoing edges are stored.</td></tr>
+      </table></div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Session Roadmap — What's Coming When</h4>
+      <ul>
+        <li><strong>TODAY (02/22):</strong> Graph basics only — adjacency lists, metagraphs, common operations. NO black boxes yet.</li>
+        <li><strong>NEXT SESSION (03/01):</strong> Black box deep-dive — DFS, BFS, SCC, Topo Sort use cases and output details.</li>
+        <li><strong>FUTURE:</strong> 2-SAT and Boolean formulas — how satisfiability maps to an SCC problem on an implication graph.</li>
+        <li><strong>FUTURE:</strong> Testing graph algorithms — strategies for verifying solutions on sparse, dense, DAG, cyclic, disconnected graphs.</li>
+        <li><strong>FUTURE:</strong> MST and Max Flow covered in dedicated future sessions.</li>
+      </ul>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Properties to Memorize from This Session</h4>
+      <div class="table-scroll"><table>
+        <tr><th>Property</th><th>Detail</th><th>Exam?</th></tr>
+        <tr><td>G = (V,E) is ONE adjacency list, not two separate structures</td><td>Never say "store V separately from E." It's always one unified adjacency list.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Undirected edge (u,v): stored TWICE — in adj[u] AND adj[v]</td><td>Undirected graph with m edges has 2m total adjacency list entries.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Directed edge u→v: stored ONCE — in adj[u] only (outgoing only)</td><td>Finding incoming edges requires scanning all lists — O(n+m).</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Opposing directed edges (u→v AND v→u) are ALLOWED in simple graphs</td><td>This is NOT a multi-edge. Only same-direction duplicates are forbidden.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>G_SCC metagraph is always a DAG + always a simple adjacency list</td><td>Drop duplicate meta-edges. G_SCC has no self-edges and no cycles.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>ccnum[v] maps original vertex to its SCC metanode: O(1) lookup</td><td>To find which vertices are in SCC k: scan all v where ccnum[v]==k, O(n).</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>All basic graph transformations (reverse, subgraph, copy, MST→adj list): O(n+m)</td><td>These are never the bottleneck. If a step is "build G^R", count it as O(n+m).</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+      </table></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- Session 2 -->
+<div class="oh-session">
+  <div class="oh-session-header">
+    <div class="oh-title">Session 2 — DFS Behavior, CC NUM Semantics &amp; Graph Manipulation</div>
+    <div class="oh-date">03/01 — TA Tim West (+ TAs Jamie McPeek, Aaron Miller)</div>
+  </div>
+  <div class="oh-session-body"><div class="oh-session-body-inner">
+    <p style="color:var(--text-dim);font-size:14px;margin-bottom:16px;">TA-led office hours session. Topics: graph properties deep-dive, black box algorithm call-outs, 2-SAT / Boolean formulas, and testing strategies. Homework 5 wrapping up; MST problem coming next week.</p>
+
+    <div class="oh-topic">
+      <h4>CC NUM: Semantics Differ by Graph Type</h4>
+      <p><strong>Undirected:</strong> ccnum[u]==ccnum[v] means u and v are mutually reachable (connected).</p>
+      <p><strong>Directed:</strong> ccnum[u]==ccnum[v] means u and v are in the same STRONGLY connected component (mutual reachability). DO NOT use ccnum[] for general one-way reachability on directed graphs.</p>
+      <ul>
+        <li>ccnum[] lookup is O(1) — index into the array directly.</li>
+        <li>On directed graphs, ccnum[] from plain DFS is unreliable for connectivity. The SCC algorithm's ccnum[] output is what correctly identifies strongly connected groups.</li>
+      </ul>
+      <div class="exam-hint">Exam Hint: "Trap question: 'Are u and v in the same connected component in this directed graph?' — ccnum[] only tells you they are in the same SCC, not that a one-directional path exists between them."</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>DFS Starting Vertex — When It Matters and When It Doesn't</h4>
+      <p>The starting vertex for DFS is <strong>OPTIONAL</strong>. Only pass one in when the specific starting point changes your answer. If you only need ccnum[], skip it — the result is identical regardless of starting vertex.</p>
+      <ul>
+        <li><strong>Use cases that REQUIRE a starting vertex:</strong> finding a specific s→t path, computing pre/post timestamps from a known source, running Bellman-Ford-style exploration from s.</li>
+        <li><strong>Use cases where starting vertex is irrelevant:</strong> finding all connected components, getting all ccnum[] values, general cycle detection across the whole graph.</li>
+      </ul>
+      <div class="exam-hint">Exam Hint: "If you pass a starting vertex AND only use ccnum[], that is fine but unnecessary. Lose no points — it just adds detail you didn't need."</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>DFS Exploration Order is NOT Deterministic</h4>
+      <div class="table-scroll"><table>
+        <tr><th>Mistake</th><th>Correction</th></tr>
+        <tr><td>✗ Assuming DFS will take a specific path or include a specific edge</td><td>DFS exploration order is arbitrary beyond the starting vertex. Never write a solution that relies on DFS choosing a particular neighbor order or traversal path.</td></tr>
+        <tr><td>✗ Trying to "steer" DFS to explore in a specific direction</td><td>Instead of manipulating DFS internals, <strong>manipulate the INPUT GRAPH</strong> so that the edge or path you need is the only valid option — an "unavoidable consequence of the input graph." Tim: "Make it unavoidable, not directed."</td></tr>
+        <tr><td>✗ Assuming DFS textbook exercises reflect real DFS behavior</td><td>Textbook exercises enforce deterministic exploration (e.g., alphabetical order) only to make solutions consistent for grading. This is NOT guaranteed behavior of the DFS black box.</td></tr>
+        <tr><td>✗ Writing a solution that depends on which subtree DFS explores after hitting a cycle</td><td>After a back edge is detected, which subtree DFS backtracks to next is arbitrary. Your correctness argument must hold for ALL possible exploration orders.</td></tr>
+      </table></div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Advanced: Forcing DFS Order via Adjacency List</h4>
+      <p>You CAN influence DFS exploration order by pre-ordering your adjacency list — but you must be <strong>fully explicit</strong> about this in your solution writeup. It is NOT implicit.</p>
+      <p>DFS processes neighbors in the order they appear in the adjacency list. If you deliberately sort or arrange the adjacency list before passing it to DFS, you can control exploration order. However, this is advanced, uncommon, and requires explicit justification in your solution.</p>
+      <div class="exam-hint">Exam Hint: "If a problem seems to require a specific DFS order, look first for a graph transformation that makes the correct behavior unavoidable. Adjacency list ordering is a last resort and requires full explanation."</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>SCC Second DFS — Why Order Matters</h4>
+      <p>The second DFS in Kosaraju's SCC algorithm must process vertices in <strong>DECREASING post-order</strong> from the first DFS. The vertex with the highest post[] value from the first run is the starting point of the second DFS on G^R.</p>
+      <ul>
+        <li>The first DFS on G gives post[] for all vertices.</li>
+        <li>Sort vertices by decreasing post[] value. This sorted order becomes the exploration order for the second DFS on G^R.</li>
+        <li>Each new Explore() call in the second DFS discovers exactly one SCC.</li>
+        <li>You do NOT modify DFS — you only control what order you pass vertices as starting points.</li>
+      </ul>
+      <div class="exam-hint">Exam Hint: "When explaining SCC in an exam answer: 'Run DFS on G to compute post[] values. Then run DFS on G^R processing vertices in decreasing post[] order.' — The decreasing post-order IS the black box input you pass in."</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Properties to Memorize from This Session</h4>
+      <div class="table-scroll"><table>
+        <tr><th>Property</th><th>Detail</th><th>Exam?</th></tr>
+        <tr><td>ccnum[] semantics: undirected → connectivity, directed → strong connectivity</td><td>Same ccnum on undirected = can reach each other. Same ccnum on directed = SCC (mutual reachability). NEVER use ccnum[] for one-way reachability on directed graphs.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>DFS starting vertex is optional — only required for s-specific queries</td><td>If you only need ccnum[], don't specify a starting vertex. Only required for s→t paths and pre/post timestamps from a known source.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>DFS exploration order beyond starting vertex is arbitrary</td><td>Never write a solution that depends on DFS taking a specific path. Manipulate the graph to make the right behavior unavoidable instead.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Force DFS order → pre-order the adjacency list (must justify explicitly)</td><td>You can control DFS exploration by ordering the adjacency list. This is how SCC's second DFS enforces post-order processing. Must be stated explicitly in solutions.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>SCC second DFS: process vertices in decreasing post[] order from first DFS</td><td>The second DFS on G^R must start from the vertex with the highest post[] value from the first run. This is the core correctness argument for Kosaraju's.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>2-SAT reduces to SCC on an implication graph</td><td>A Boolean formula in 2-CNF is satisfiable iff no variable x and its negation ¬x are in the same SCC of the implication graph.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+      </table></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- Session 3 -->
+<div class="oh-session">
+  <div class="oh-session-header">
+    <div class="oh-title">Session 3 — SCC Meta Graph, Universal Vertices &amp; Exam Strategy</div>
+    <div class="oh-date">03/04 — Prof. Brito (Gerandy)</div>
+  </div>
+  <div class="oh-session-body"><div class="oh-session-body-inner">
+    <p style="color:var(--text-dim);font-size:14px;margin-bottom:16px;">Pre-Exam 2 session. Class average on Exam 1 was ~80%. Prof. noted Exam 2 is historically more accessible and students typically recover confidence on the graphs unit.</p>
+
+    <div class="oh-topic">
+      <h4>Critical Identity: Reversing vs. Meta Graph Order</h4>
+      <p>You can reverse the original graph BEFORE or AFTER building the SCC meta graph — you get the <strong>SAME result</strong> either way.</p>
+      <p style="font-family:'SF Mono','Fira Code',monospace;color:var(--accent);margin:8px 0;">meta(G^R) = (meta(G))^R</p>
+      <ul>
+        <li>If asked to find SCCs of G^R, you can just take G_SCC and reverse all its edges — O(n+m), no second SCC run needed.</li>
+        <li>This identity is also why Kosaraju's algorithm works: running DFS on G^R is equivalent to running DFS on the reversed meta-structure.</li>
+      </ul>
+      <div class="exam-hint">Exam Hint: "Great multiple-choice trap: 'Do you reverse the whole graph or half?' The answer: it does not matter. Reverse before or after SCC — same result."</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>The "Universal Vertex" Problem (Linear Time)</h4>
+      <p><strong>Problem:</strong> Find all vertices v in a directed graph such that v can reach EVERY other vertex AND every other vertex can reach v. Two-directional reachability requirement.</p>
+      <p style="color:var(--red);font-weight:700;margin:8px 0;">Brute Force (Too Slow — Do Not Use)</p>
+      <p>BFS from every vertex, check if all n vertices are visited. Repeat on reverse graph. Intersect results. Runtime: O(n · (n+m)) — quadratic. Prof explicitly said: "that sounds too much."</p>
+      <p style="color:var(--green);font-weight:700;margin:8px 0;">Optimal Solution — O(n+m)</p>
+      <ul>
+        <li>1. Run <strong>SCC</strong> to build G_SCC = (V_SCC, E_SCC).</li>
+        <li>2. Run <strong>Topological Sort</strong> on G_SCC. Get topo order V1, V2, ..., Vk.</li>
+        <li>3. <strong>Forward pass:</strong> Track which metanodes can reach ALL other metanodes looking forward in topo order. Vi can reach everything forward iff Vi is the <strong>UNIQUE SOURCE</strong> in the subgraph {Vi, Vi+1, ..., Vk}.</li>
+        <li>4. <strong>Backward pass:</strong> Reverse G_SCC. Run the same procedure — find unique sources looking backward.</li>
+        <li>5. <strong>Intersection:</strong> Vertices satisfying BOTH conditions are universal. Map back using ccnum[].</li>
+      </ul>
+      <p>Runtime: O(n+m) — SCC is O(n+m), Topo Sort is O(n+m), both passes are O(n_SCC + m_SCC) = O(n+m).</p>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Key DAG Theorem</h4>
+      <p>Let G be a DAG with topological order V1, V2, ..., Vn. Then: Vi reaches Vj (for j > i) <strong>if and only if</strong> Vi is the unique source in the subgraph induced by vertices {Vi, Vi+1, ..., Vn}.</p>
+      <p>This converts an O(n+m) BFS reachability check into a single structural inspection of the DAG.</p>
+      <div class="exam-hint">Exam Hint: "If an exam question gives you a DAG and asks about reachability, think about this theorem. 'Can vertex V reach all others?' ↔ 'Is V the unique source in the DAG?'"</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Common Mistakes Prof Flagged</h4>
+      <div class="table-scroll"><table>
+        <tr><th>Mistake</th><th>Correction</th></tr>
+        <tr><td>✗ Reversing only part of the graph</td><td>Always reverse the ENTIRE graph. meta(G^R) = (meta(G))^R, so reverse before or after SCC — same result.</td></tr>
+        <tr><td>✗ Using O(n²) brute force BFS for universal vertex</td><td>The intended solution is O(n+m) using SCC + Topo Sort. BFS from every vertex is too slow and won't get full credit.</td></tr>
+        <tr><td>✗ Forgetting that isolated vertices are both sources AND sinks</td><td>An isolated vertex (no edges) trivially satisfies "is a source" and "is a sink" — but it cannot reach anything else. Account for this in the universal vertex check.</td></tr>
+        <tr><td>✗ Treating the brute-force (BFS from every vertex + reverse) as the answer</td><td>Prof acknowledged this solution exists and works, but called it "O(n²) — too much." The O(n+m) SCC-based solution is what is expected.</td></tr>
+      </table></div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Exam 2 Strategy (Prof's Direct Words)</h4>
+      <p>Exam 2 is historically <strong>MORE ACCESSIBLE</strong> than Exam 1. The graphs unit is where students recover confidence.</p>
+      <p>The universal vertex homework problem was intentionally hard and time-consuming. It is <strong>NOT</strong> expected to be solved under exam conditions in 1-2 hours.</p>
+      <p>The <strong>POINT</strong> of the homework was: think about all the little properties (unique source ↔ reaches everything, reverse symmetry, isolated vertex = source + sink) — <strong>THOSE properties are what will appear in exam questions.</strong> Memorize the tricks, not the full derivation.</p>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Properties to Memorize from This Session</h4>
+      <div class="table-scroll"><table>
+        <tr><th>Property</th><th>Detail</th><th>Exam?</th></tr>
+        <tr><td>meta(G^R) = (meta(G))^R</td><td>SCC meta graph of reverse = reverse of SCC meta graph. Reverse before or after — same result.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Unique source in G_SCC ↔ that SCC can reach all other SCCs</td><td>If an SCC has no incoming edges, every vertex in the original graph is reachable from it.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Vi reaches all of {Vi+1,...,Vn} ↔ Vi is the unique source of that suffix</td><td>In a DAG with topo order, reachability-forward = being the unique source looking ahead.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Isolated vertex = source AND sink simultaneously</td><td>A vertex with no edges trivially satisfies both properties but reaches/is-reached-by nothing.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>BFS from every vertex = O(n²) — too slow</td><td>When a problem asks for linear time, O(n²) BFS brute force will not get full credit.</td><td>—</td></tr>
+        <tr><td>Universal vertex algorithm: SCC → Topo Sort → forward pass ∩ backward pass</td><td>The O(n+m) approach: find vertices that are unique sources both forward and backward in the topo-sorted meta graph.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+      </table></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- Session 4 -->
+<div class="oh-session">
+  <div class="oh-session-header">
+    <div class="oh-title">Session 4 — Kruskal's vs Prim's, Union-Find &amp; Path Compression</div>
+    <div class="oh-date">03/08 — TA Tim West</div>
+  </div>
+  <div class="oh-session-body"><div class="oh-session-body-inner">
+    <p style="color:var(--text-dim);font-size:14px;margin-bottom:16px;">Pre-Exam 2 session (March 8). Exam 2 starts mid-next-week. HW6 and HW7 due tonight. 4 graph walkthrough videos posted on Ed. Main focus: Kruskal's and Prim's black box details, with walkthrough of Union-Find path compression from problem 5.2B.</p>
+
+    <div class="oh-topic">
+      <h4>Logistics</h4>
+      <ul>
+        <li>HW6 and HW7 due tonight. Tim strongly recommends the <strong>WRITTEN homework</strong> for grader feedback — best way to understand what the team is looking for.</li>
+        <li>4 graph walkthrough videos posted (Graphs Suggested Problems post + Ed Resources).</li>
+        <li>Week 9 starts tomorrow: Graphs content quiz opens (graded). Another coding assignment on graphs. MST and Flow suggested problems + walkthrough videos Thursday.</li>
+        <li>Exam 2 is about 1.5 weeks away. Topics covered today <strong>ARE on Exam 2</strong>.</li>
+      </ul>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Kruskal's — Must Be Connected</h4>
+      <p>Kruskal's <strong>REQUIRES</strong> a guaranteed connected input graph. Cannot safely run on a disconnected graph in this class.</p>
+      <p>Some sources say Kruskal's can run on disconnected graphs and output a spanning forest. In <strong>THIS CLASS</strong>: keep it simple — Kruskal's input must be connected. You must guarantee connectivity from the problem statement or verify it (run BFS/DFS first) before calling Kruskal's.</p>
+      <ul>
+        <li>Valid workaround: build connected subgraphs separately, run Kruskal's on each, then combine the resulting subtrees into a final solution.</li>
+        <li>Output format: edges[] is a list of edges [E1, E2, ..., E_{n-1}]. <strong>NOT parent pointers.</strong> Key difference from Prim's.</li>
+      </ul>
+      <div class="exam-hint">Exam Hint: "If a problem gives a potentially disconnected graph and asks for an MST, state how you guarantee connectivity before calling Kruskal's."</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Kruskal's vs Prim's Output — Critical Difference</h4>
+      <p>Kruskal's output = <strong>edges[]</strong> (edge list). Prim's output = <strong>prev[]</strong> (parent pointers). <strong>NOT interchangeable</strong> without conversion.</p>
+      <p>To traverse the MST after Kruskal's, you must first convert edges[] to an adjacency list in O(n+m). With Prim's, you can trace paths directly via prev[].</p>
+      <ul>
+        <li>Prim's prev[] is identical in format to Dijkstra's prev[] and BFS prev[] — trace paths the same way.</li>
+      </ul>
+      <div class="exam-hint">Exam Hint: "Exam trap: using Kruskal's edges[] directly as a graph. Always state: 'Convert Kruskal's edges[] to adjacency list G_MST in O(n+m)' before running BFS/DFS."</div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Union-Find Internals (How Kruskal's Works)</h4>
+      <ul>
+        <li><strong>Kruskal's is GREEDY:</strong> sorts all edges lightest to heaviest, adds each if it doesn't create a cycle. For each edge (v,w): if v and w are in different components → add. Same component → skip (cycle).</li>
+        <li><strong>Union-Find is INTERNAL to Kruskal's</strong> — not a separate black box you call. Tim: "that is more of a data structure topic." You do not implement it for exams. The cycle check is abstracted as c(v) ≠ c(w).</li>
+        <li><strong>Path compression:</strong> always attach a new vertex to the root with the highest existing tree depth. When merging, shallower root becomes child of deeper root. Keeps the union-find tree flat for efficiency.</li>
+        <li><strong>Example (5.2B):</strong> edges chosen by weight order. {A,B} (w=1), {F,G} (w=1), extend to {F,G,D}, {F,G,D,H}. Skip any edge that creates a cycle. At weight 3: one edge creates cycle — skip. At weight 4: take one, skip the cycle-former. At weight 5: would form cycle — skip.</li>
+      </ul>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Common Mistakes</h4>
+      <div class="table-scroll"><table>
+        <tr><th>Mistake</th><th>Correction</th></tr>
+        <tr><td>✗ Running Kruskal's on a possibly disconnected graph</td><td>Kruskal's requires <strong>CONNECTED</strong> input. Verify with BFS/DFS in O(n+m) first or guarantee from problem statement.</td></tr>
+        <tr><td>✗ Using Kruskal's edges[] output directly as a graph for BFS/DFS</td><td>Always state: "Convert Kruskal's edges[] to adjacency list G_MST in O(n+m)" before traversing.</td></tr>
+        <tr><td>✗ Treating Union-Find as a separate black box to call</td><td>Union-Find is <strong>INTERNAL</strong> to Kruskal's. You never call it separately. Cycle check is handled inside Kruskal's.</td></tr>
+      </table></div>
+    </div>
+
+    <div class="oh-topic">
+      <h4>Properties to Memorize</h4>
+      <div class="table-scroll"><table>
+        <tr><th>Property</th><th>Detail</th><th>Exam?</th></tr>
+        <tr><td>Kruskal's requires CONNECTED input graph</td><td>Verify or guarantee connectivity before calling Kruskal's.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Kruskal's output = edges[] (list of n−1 edges)</td><td>NOT parent pointers. Convert to adjacency list in O(n+m) before BFS/DFS on MST.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Prim's output = prev[] (parent pointers, same format as Dijkstra's)</td><td>Trace paths directly via prev[]. No conversion needed.</td><td style="color:var(--yellow)">LIKELY ON EXAM</td></tr>
+        <tr><td>Union-Find is internal to Kruskal's — not a separate black box</td><td>Cycle check abstracted as c(v) ≠ c(w). Handled inside the algorithm.</td><td>—</td></tr>
+      </table></div>
+    </div>
+  </div></div>
+</div>

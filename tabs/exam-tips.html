@@ -1,0 +1,199 @@
+<h1>Exam Tips — CS6515 Graph Algorithms</h1>
+<p class="subtitle">Everything you need to know about writing exam answers.</p>
+
+<!-- 3 Questions -->
+<div class="section-title">3 Questions to Ask for Every Exam Problem</div>
+<div class="table-scroll"><table>
+  <tr><th>#</th><th>Question</th><th>Details</th></tr>
+  <tr><td><strong>1</strong></td><td><strong>What does the problem WANT?</strong></td><td>A single path? Total flow volume? A grouping of nodes? A linear ordering? Maximum or minimum of what exactly?</td></tr>
+  <tr><td><strong>2</strong></td><td><strong>What type is the GRAPH?</strong></td><td>Directed or undirected? Does it have edge weights? Can those weights be negative? Does it have cycles?</td></tr>
+  <tr><td><strong>3</strong></td><td><strong>What is the SCOPE?</strong></td><td>Single source or all pairs? One specific s to t, or from s to all vertices? Do you need intermediate-step data (iter table)?</td></tr>
+</table></div>
+
+<!-- Keyword Mapping -->
+<div class="section-title">Keyword → Algorithm Mapping</div>
+<div class="table-scroll"><table>
+  <tr><th>Keyword / Phrase</th><th>Algorithm</th></tr>
+  <tr><td><code>'fewest edges / hops / steps / connections'</code></td><td><strong>Breadth-First Search</strong> — unweighted shortest path</td></tr>
+  <tr><td><code>'shortest / minimum cost path'</code> with positive weights</td><td><strong>Dijkstra's Algorithm</strong> — requires all weights ≥ 0</td></tr>
+  <tr><td><code>'shortest path'</code> with possible negative weights</td><td><strong>Bellman-Ford</strong> — handles any weights, single source</td></tr>
+  <tr><td><code>'shortest path between ALL pairs'</code></td><td><strong>Floyd-Warshall</strong> — O(n³) all-pairs DP</td></tr>
+  <tr><td><code>'maximum flow / throughput / bandwidth / volume'</code></td><td><strong>Ford-Fulkerson</strong> (integers) or <strong>Edmonds-Karp</strong> (any)</td></tr>
+  <tr><td><code>'find the minimum cut / bottleneck separating s from t'</code></td><td>Run Edmonds-Karp to completion → BFS on final residual graph Gᶠ* → L = reachable from s → min cut edges = fully saturated edges from L to R in original graph</td></tr>
+  <tr><td><code>'verify / check if a given flow is maximum'</code></td><td>Build residual graph Gᶠ in O(n+m), run DFS from s. If t unreachable → flow IS maximum. If t reachable → augmenting path exists → NOT maximum. Total: O(n+m)</td></tr>
+  <tr><td><code>'minimum spanning tree / cheapest to connect all'</code></td><td><strong>Kruskal's Algorithm</strong> or <strong>Prim's Algorithm</strong></td></tr>
+  <tr><td><code>'widest path / maximize bottleneck / maximize minimum width'</code></td><td>Kruskal's (negated weights) → max spanning tree → BFS for path</td></tr>
+  <tr><td><code>'topological order / dependency / must come before / prerequisite'</code></td><td><strong>Topological Sort</strong> — graph MUST be a DAG (no cycles)</td></tr>
+  <tr><td><code>'strongly connected / mutual reachability / round trip / two-way reachable'</code></td><td><strong>Strongly Connected Components</strong></td></tr>
+  <tr><td><code>'cycle detection'</code> in directed graph</td><td><strong>Depth-First Search</strong> — back edge in DFS = cycle exists</td></tr>
+  <tr><td><code>'connected components / separate groups / islands'</code></td><td><strong>Depth-First Search</strong> on undirected — group by ccnum[]</td></tr>
+  <tr><td><code>'reachability / can A reach B'</code></td><td><strong>Breadth-First Search</strong> (dist[B] ≠ ∞?) or <strong>Depth-First Search</strong> (same ccnum?)</td></tr>
+  <tr><td><code>'negative weights'</code></td><td>Bellman-Ford (single source) or Floyd-Warshall (all pairs)</td></tr>
+  <tr><td><code>'negative cycle detection'</code></td><td>Bellman-Ford: check iter[n] vs iter[n-1] | Floyd-Warshall: check dist[v][v] < 0</td></tr>
+  <tr><td><code>'bipartite matching / pair up two groups'</code></td><td>Build flow network → Edmonds-Karp (super source + super sink + capacity 1 edges)</td></tr>
+  <tr><td><code>'source SCC / sink SCC'</code></td><td>Strongly Connected Components → inspect G_SCC metagraph adjacency lists</td></tr>
+</table></div>
+
+<!-- Input Modification Tricks -->
+<div class="section-title">Input Modification Tricks</div>
+
+<div class="mod-card">
+  <h4>Minimum Spanning Tree → Maximum Spanning Tree</h4>
+  <p>Negate ALL edge weights: for each edge e, set w(e) = -w(e). Then run Kruskal's Algorithm normally. The minimum of the negated weights = maximum of the original weights.</p>
+</div>
+
+<div class="mod-card">
+  <h4>Undirected graph → Directed flow network</h4>
+  <p>Replace each undirected edge (u, v) with capacity c with TWO directed edges: u→v with capacity c, AND v→u with capacity c.</p>
+</div>
+
+<div class="mod-card">
+  <h4>Multiple sources → Single super-source</h4>
+  <p>Add a new virtual vertex s*. Add edge s*→v with weight 0 (or ∞ for flow) for every real source vertex v. Run algorithm from s*.</p>
+</div>
+
+<div class="mod-card">
+  <h4>Multiple sinks → Single super-sink</h4>
+  <p>Add a new virtual vertex t*. Add edge v→t* with weight 0 (or ∞ for flow) from every real sink vertex v.</p>
+</div>
+
+<div class="mod-card">
+  <h4>Reverse a graph to get G^R</h4>
+  <p>Flip every directed edge. An edge u→v becomes v→u. This is an O(n+m) operation. State: 'Reverse the graph to create G^R.'</p>
+</div>
+
+<div class="mod-card">
+  <h4>Build subgraph keeping only certain edges</h4>
+  <p>'Create copy of G called G' keeping only edges satisfying [condition].' — O(n+m). Just state it.</p>
+</div>
+
+<div class="mod-card">
+  <h4>Convert Kruskal's edges[] to a graph</h4>
+  <p>State: 'Convert Kruskal's edges[] output to adjacency list G_MST.' This is O(n+m).</p>
+</div>
+
+<div class="mod-card">
+  <h4>Convert Prim's prev[] to a graph</h4>
+  <p>State: 'Build adjacency list G_MST from Prim's prev[] output.' This is O(n+m).</p>
+</div>
+
+<div class="mod-card">
+  <h4>Construct min st-cut from a max flow</h4>
+  <p>After running Ford-Fulkerson/Edmonds-Karp: (1) build final residual graph Gᶠ*, (2) BFS/DFS from s on Gᶠ*, (3) L = all reachable vertices, (4) min cut edges = all original edges v→w where v∈L and w∈R. All such edges are fully saturated (flow = capacity). O(n+m) after max flow.</p>
+</div>
+
+<!-- Required Solution Format -->
+<div class="section-title">Required Solution Format — What Graders Look For</div>
+
+<div class="format-card">
+  <h4>Part (a): Algorithm description</h4>
+  <p>Write in NARRATIVE paragraph form. NO pseudocode, NO code. Describe: (1) input modifications, (2) which algorithm to run and what you pass in, (3) which outputs you use, (4) output modifications, (5) what you return as the final answer.</p>
+</div>
+
+<div class="format-card">
+  <h4>Part (b): Correctness justification</h4>
+  <p>Explain WHY your approach is correct. How does the black box solve your specific problem? Why do your input/output modifications correctly map to the answer? This is informal — not a formal proof.</p>
+</div>
+
+<div class="format-card">
+  <h4>Part (c): Runtime analysis</h4>
+  <p>Analyze EVERY step in Big-O notation. State known algorithm runtimes without justification. Give ONE final simplified Big-O answer at the end.</p>
+</div>
+
+<div class="format-card">
+  <h4>NO pseudocode — serious point deduction</h4>
+  <p>Bullet points are fine. But writing code line-by-line in English = pseudocode = significant point loss. Write high-level narrative: 'Run Dijkstra's Algorithm from s using edge weights w...'</p>
+</div>
+
+<div class="format-card">
+  <h4>Path reconstruction — don't forget it</h4>
+  <p>If the problem asks for the actual PATH (not just distance or cost): explicitly say 'Follow prev[] backwards from t to s in O(n) to reconstruct the path.'</p>
+</div>
+
+<div class="format-card">
+  <h4>Graph operations have known runtimes</h4>
+  <p>Reversing a graph, copying a graph, building a subgraph, converting MST output to adjacency list — all are O(n+m). Just state the operation and the runtime.</p>
+</div>
+
+<!-- Critical Mistakes -->
+<div class="section-title">Critical Mistakes to Avoid</div>
+
+<div class="mistake-card">
+  <h4>Modifying a black box algorithm</h4>
+  <p>You CANNOT change any algorithm's internals. No modifications, no inline tracking, no tweaked versions. Only change INPUTS before calling and use OUTPUTS after. Recreating an algorithm with modifications is the same as modifying it.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Using Dijkstra's Algorithm with negative edge weights</h4>
+  <p>Dijkstra's WILL give wrong answers with negative weights. The greedy finality argument (a dequeued node's distance is final) breaks when negative edges exist. Always use Bellman-Ford when any weight could be negative.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Using ccnum[] from DFS on a directed graph</h4>
+  <p>ccnum[] is unreliable on directed graphs. DFS may assign the same ccnum to nodes that aren't truly strongly connected. Use Strongly Connected Components to get correct groupings.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Applying Topological Sort to a graph with cycles</h4>
+  <p>Topological Sort is undefined on cyclic graphs — it will give a wrong or meaningless result. Always verify the graph is a DAG first (no back edges in DFS), or use Strongly Connected Components to collapse cycles into a DAG first.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Using Ford-Fulkerson with non-integer or large capacities</h4>
+  <p>Ford-Fulkerson's runtime is O(mC). With non-integer capacities or very large C, this may not terminate. Use Edmonds-Karp which guarantees polynomial O(nm²) runtime.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Confusing max flow (total volume) with widest path (single route)</h4>
+  <p>Max flow = total throughput across ALL paths simultaneously. Widest path = ONE path with maximum bottleneck. They answer completely different questions. Flow → Ford-Fulkerson/Edmonds-Karp. Widest path → Max Spanning Tree + BFS.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Forgetting to handle anti-parallel edges before max flow</h4>
+  <p>If original graph has both u→v and v→u, pre-process BEFORE running Ford-Fulkerson/Edmonds-Karp: replace one direction (e.g., v→u) with two-hop path v→x→u via auxiliary vertex x. Set both new edge capacities = original c_{vu}.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Thinking backward residual edges mean reverse flow</h4>
+  <p>Backward edge w→v in Gᶠ with capacity f_{vw} does NOT mean flow goes w→v. It means: we can CANCEL up to f_{vw} units of existing flow on v→w. Cancellation, not reverse flow.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Assuming s and t might not be in the spanning tree</h4>
+  <p>A spanning tree SPANS ALL n vertices by definition. s and t are always present in any spanning tree. The s→t path in the tree always exists and is unique.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Running Kruskal's on a disconnected graph</h4>
+  <p>Kruskal's requires CONNECTED undirected input. Verify connectivity first with BFS/DFS in O(n+m). State this guarantee explicitly. Workaround: run Kruskal's on connected subgraphs separately then combine subtrees.</p>
+</div>
+
+<div class="mistake-card">
+  <h4>Forgetting to convert MST output before using it as a graph</h4>
+  <p>Kruskal's edges[] and Prim's prev[] are not adjacency lists. To run BFS or DFS on the MST, first state: 'Convert edges[] to adjacency list G_MST in O(n+m).' Then run BFS/DFS on G_MST.</p>
+</div>
+
+<!-- Runtime Reference -->
+<div class="section-title">Runtime Quick Reference Card</div>
+<div class="table-scroll"><table>
+  <tr><th>Algorithm / Operation</th><th>Runtime</th></tr>
+  <tr><td>Depth-First Search</td><td>O(n + m)</td></tr>
+  <tr><td>Breadth-First Search</td><td>O(n + m)</td></tr>
+  <tr><td>Topological Sort</td><td>O(n + m)</td></tr>
+  <tr><td>Strongly Connected Components</td><td>O(n + m)</td></tr>
+  <tr><td>Dijkstra's Algorithm</td><td>O((n + m) log n)</td></tr>
+  <tr><td>Kruskal's Algorithm</td><td>O(m log n)</td></tr>
+  <tr><td>Prim's Algorithm</td><td>O(m log n)</td></tr>
+  <tr><td>Bellman-Ford</td><td>O(nm)</td></tr>
+  <tr><td>Floyd-Warshall</td><td>O(n³)</td></tr>
+  <tr><td>Ford-Fulkerson</td><td>O(mC) where C = maximum flow value</td></tr>
+  <tr><td>Edmonds-Karp</td><td>O(nm²)</td></tr>
+  <tr><td>Verify max flow (check if f is maximum)</td><td>O(n+m) — build residual graph + DFS from s</td></tr>
+  <tr><td>Construct min cut from max flow</td><td>O(n+m) — BFS on final residual graph after max flow</td></tr>
+  <tr><td>2-SAT</td><td>O(n + m)</td></tr>
+  <tr><td>Graph reverse / copy / subgraph / MST conversion</td><td>O(n + m)</td></tr>
+  <tr><td>Single vertex or edge lookup</td><td>O(1)</td></tr>
+  <tr><td>Iterating all vertices</td><td>O(n)</td></tr>
+  <tr><td>Iterating all edges</td><td>O(m)</td></tr>
+  <tr><td>Path reconstruction following prev[]</td><td>O(n)</td></tr>
+</table></div>
