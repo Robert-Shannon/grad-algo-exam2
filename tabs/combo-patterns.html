@@ -1,6 +1,70 @@
 <h1>Combo Patterns</h1>
 <p class="subtitle">31 patterns across 7 categories — chaining black-box algorithms to solve complex problems.</p>
 
+<!-- ===== THE COMBINATION MINDSET ===== -->
+<div class="section-heading"><span class="link-icon">&#128279;</span> THE COMBINATION MINDSET</div>
+
+<div class="instruction-box">
+  <p style="color: var(--text); line-height: 1.7; margin: 0;">
+    Every multi-algorithm problem follows the same skeleton:
+  </p>
+  <div style="margin: 16px 0; padding-left: 8px;">
+    <div class="step"><strong>(1)</strong> Transform the input graph or weights</div>
+    <div class="step"><strong>(2)</strong> Run black-box A</div>
+    <div class="step"><strong>(3)</strong> Transform the output into a new graph or structure</div>
+    <div class="step"><strong>(4)</strong> Run black-box B</div>
+    <div class="step"><strong>(5)</strong> Post-process the result</div>
+  </div>
+  <p style="color: var(--text-dim); margin: 0; font-size: 14px;">
+    The trick is knowing <strong style="color: var(--accent);">WHICH</strong> transformation unlocks the right black box.
+  </p>
+</div>
+
+<div class="section-heading">CORE TRANSFORMATION TOOLKIT</div>
+
+<div class="toolkit-grid">
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #6c9eff;"></span>Negate weights</div>
+    <div class="tk-desc">Turn longest-path into shortest-path (use Bellman-Ford, not Dijkstra's)</div>
+  </div>
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #f472b6;"></span>Add virtual node</div>
+    <div class="tk-desc">Connect a super-source s* to multiple sources with 0-weight edges</div>
+  </div>
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #34d399;"></span>Split each vertex</div>
+    <div class="tk-desc">Replace node v with v_in → v_out edge to model node costs/capacities</div>
+  </div>
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #fbbf24;"></span>Reverse all edges</div>
+    <div class="tk-desc">Run shortest-path TO a target by running FROM it on the reversed graph</div>
+  </div>
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #a78bfa;"></span>Build layered graph</div>
+    <div class="tk-desc">Copy graph k times to track a resource counter (hops, fuel, stops)</div>
+  </div>
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #fb923c;"></span>Take -log(weight)</div>
+    <div class="tk-desc">Convert multiplicative objectives into additive ones for Dijkstra's</div>
+  </div>
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #f87171;"></span>Remove forbidden nodes</div>
+    <div class="tk-desc">Delete nodes (and their edges) to enforce path constraints</div>
+  </div>
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #38bdf8;"></span>SCC condensation</div>
+    <div class="tk-desc">Collapse SCCs into single nodes to create a DAG for topo-sort DP</div>
+  </div>
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #4ade80;"></span>Convert MST → adj list</div>
+    <div class="tk-desc">Build adjacency list from MST edges, then run BFS/DFS on the tree</div>
+  </div>
+  <div class="toolkit-card">
+    <div class="tk-title"><span class="tk-dot" style="background: #e879f9;"></span>Set capacity = 1</div>
+    <div class="tk-desc">Model edge-disjoint or node-disjoint paths as a max-flow problem</div>
+  </div>
+</div>
+
 <!-- ===== CATEGORY 1: Advanced Path Problems ===== -->
 <div class="collapsible">
   <div class="collapsible-header">
