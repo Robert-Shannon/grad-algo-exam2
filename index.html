@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS6515 Exam 2 Study Guide</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #232733;
+  --border: #2e3345;
+  --text: #e2e4ea;
+  --text-dim: #9ca3b8;
+  --accent: #6c9eff;
+  --accent-dim: #4a7ae6;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --orange: #fb923c;
+  --purple: #a78bfa;
+  --cyan: #22d3ee;
+  --radius: 8px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* NAV TABS */
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { background: var(--surface2); color: var(--text); }
+.tab-btn.active { background: var(--accent-dim); color: #fff; }
+
+.tab-content { display: none; padding: 24px 16px; max-width: 900px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* HEADER */
+h1 { font-size: 28px; margin-bottom: 4px; }
+.subtitle { color: var(--text-dim); font-size: 14px; margin-bottom: 32px; }
+
+/* SECTION HEADERS */
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 32px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* INSTRUCTION BOX */
+.instruction-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.instruction-box .step {
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.instruction-box .step strong { color: var(--accent); }
+
+/* INSTANT MATCH GRID */
+.match-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 600px) { .match-grid { grid-template-columns: 1fr; } }
+
+.match-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+.match-card .scenario { color: var(--text-dim); font-size: 14px; }
+.match-card .algo { color: var(--accent); font-weight: 600; font-size: 14px; text-align: right; }
+
+/* COLLAPSIBLE SECTIONS */
+.collapsible {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.collapsible-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.collapsible-header:hover { background: var(--surface2); }
+
+.collapsible-header .label {
+  font-weight: 600;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.collapsible-header .count {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.collapsible-header .chevron {
+  color: var(--text-dim);
+  font-size: 18px;
+  transition: transform 0.3s;
+}
+
+.collapsible.open > .collapsible-header .chevron { transform: rotate(180deg); }
+
+.collapsible-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.collapsible.open > .collapsible-body { max-height: 50000px; }
+
+.collapsible-body-inner { padding: 0 20px 20px; }
+
+.category-intro {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* PATTERN CARDS */
+.pattern {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.pattern-header {
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.pattern-header:hover { background: rgba(108,158,255,0.06); }
+
+.pattern-prompt {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.pattern-prompt em { color: var(--text); font-style: italic; }
+
+.pattern-algo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.pattern-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.pattern.open > .pattern-body { max-height: 10000px; }
+
+.pattern-body-inner {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.detail-block {
+  margin-top: 14px;
+}
+
+.detail-block h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.detail-block.why h4 { color: var(--yellow); }
+.detail-block.how h4 { color: var(--cyan); }
+.detail-block.example h4 { color: var(--purple); }
+.detail-block.use-when h4 { color: var(--green); }
+.detail-block.do-not h4 { color: var(--red); }
+
+.detail-block p, .detail-block li {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.detail-block ul {
+  list-style: none;
+  padding: 0;
+}
+
+.detail-block.use-when li::before { content: "✓ "; color: var(--green); font-weight: bold; }
+.detail-block.do-not li::before { content: "✗ "; color: var(--red); font-weight: bold; }
+
+.detail-block li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<!-- TAB BAR -->
+<nav class="tab-bar">
+  <button class="tab-btn active" data-tab="pattern">Pattern Recognition</button>
+  <button class="tab-btn" data-tab="combo">Combo Patterns</button>
+  <button class="tab-btn" data-tab="lectures">Lectures</button>
+  <button class="tab-btn" data-tab="pseudocode">Pseudocode</button>
+  <button class="tab-btn" data-tab="office">Office Hours</button>
+  <button class="tab-btn" data-tab="visualizations">Visualizations</button>
+  <button class="tab-btn" data-tab="reference">Algorithm Reference</button>
+  <button class="tab-btn" data-tab="compare">Quick Compare</button>
+  <button class="tab-btn" data-tab="tips">Exam Tips</button>
+</nav>
+
+<!-- ==================== PATTERN RECOGNITION TAB ==================== -->
+<div class="tab-content active" id="tab-pattern">
+
+<h1>Pattern Recognition</h1>
+<p class="subtitle">Identify the problem type, then find the matching algorithm pattern.</p>
+
+<!-- How to use -->
+<div class="instruction-box">
+  <div class="step"><strong>Step 1</strong> — Extract what the problem WANTS. A path? A grouping? Max flow? An ordering?</div>
+  <div class="step"><strong>Step 2</strong> — Identify the graph type. Directed or undirected? Weighted? Negative weights possible?</div>
+  <div class="step"><strong>Step 3</strong> — Find your pattern below. Click to expand any pattern for the full explanation.</div>
+</div>
+
+<!-- Instant Match -->
+<div class="section-title">Instant Match — What does the problem want?</div>
+<div class="match-grid">
+  <div class="match-card"><span class="scenario">Minimum hops (no weights)</span><span class="algo">BFS</span></div>
+  <div class="match-card"><span class="scenario">Cheapest path (positive weights)</span><span class="algo">Dijkstra's</span></div>
+  <div class="match-card"><span class="scenario">Cheapest path (any weights)</span><span class="algo">Bellman-Ford</span></div>
+  <div class="match-card"><span class="scenario">All-pairs shortest paths</span><span class="algo">Floyd-Warshall</span></div>
+  <div class="match-card"><span class="scenario">Maximum total throughput s→t</span><span class="algo">Ford-Fulkerson / Edmonds-Karp</span></div>
+  <div class="match-card"><span class="scenario">Connect all nodes cheaply</span><span class="algo">Kruskal's / Prim's</span></div>
+  <div class="match-card"><span class="scenario">Maximize bottleneck on one path</span><span class="algo">Max Spanning Tree + BFS</span></div>
+  <div class="match-card"><span class="scenario">Order by dependencies</span><span class="algo">Topological Sort</span></div>
+  <div class="match-card"><span class="scenario">Mutual reachability groups</span><span class="algo">SCC</span></div>
+  <div class="match-card"><span class="scenario">Does a cycle exist?</span><span class="algo">DFS (back edge check)</span></div>
+  <div class="match-card"><span class="scenario">Connected components / groups</span><span class="algo">DFS (undirected)</span></div>
+  <div class="match-card"><span class="scenario">Detect any negative cycle</span><span class="algo">Bellman-Ford / Floyd-Warshall</span></div>
+</div>
+
+<!-- ===== SHORTEST PATH ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Shortest / Cheapest Path Problems <span class="count">4 patterns</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">These problems ask for the minimum cost to travel from one place to another. The key distinctions are: are edges weighted? Can weights be negative? Do you need one source or all pairs?</p>
+
+    <!-- BFS -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Minimum number of hops / edges between two nodes — no weights"</em></div>
+        <div class="pattern-algo">→ Breadth-First Search</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>BFS explores the graph layer by layer from the source. The first time it reaches a destination, it used the fewest possible edges. Since all edges are treated equally (no weights), BFS gives the exact minimum hop count. It runs in O(n+m) which is faster than Dijkstra's O((n+m) log n).</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run BFS starting from vertex s, passing in the graph. The output dist[t] gives the minimum number of edges from s to t. To get the actual path, follow prev[t] → prev[prev[t]] → ... → s.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'What is the fewest number of streets you must cross to get from building A to building B?' or 'What is the minimum number of flight connections from city A to city B (each flight = 1 hop)?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Graph is unweighted (or all edge weights are equal)</li><li>You want the fewest edges, not minimum total cost</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Edges have different weights — use Dijkstra's instead</li><li>You need pre/post timestamps — use DFS</li></ul></div>
+      </div></div>
+    </div>
+
+    <!-- Dijkstra's -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Shortest weighted path — all edge weights are positive or zero"</em></div>
+        <div class="pattern-algo">→ Dijkstra's Algorithm</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Dijkstra's uses a priority queue to always process the closest unvisited node first. Because all weights are non-negative, once a node is popped from the queue its distance is FINAL — no future path through a later node could possibly be shorter. This greedy correctness breaks down the moment any weight is negative.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run Dijkstra's from source s, passing in the graph and non-negative edge weight list. The output dist[t] = shortest weighted distance to t. Follow prev[t] → ... → s to reconstruct the shortest path.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Find the fastest drive from Klaus to Skiles where each road has a travel time in minutes (all positive).' or 'Minimum cost package delivery route.'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>All edge weights are ≥ 0</li><li>Single source — want distance from s to one or all destinations</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Any negative edge weight — Dijkstra's will give WRONG answers. Use Bellman-Ford.</li><li>All-pairs distances — use Floyd-Warshall</li></ul></div>
+      </div></div>
+    </div>
+
+    <!-- Bellman-Ford -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Shortest weighted path — some edge weights may be negative"</em></div>
+        <div class="pattern-algo">→ Bellman-Ford</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Bellman-Ford is a dynamic programming algorithm. It defines D(i, v) = shortest path from s to v using at most i edges. Base case: D(0, s) = 0, everything else = ∞. Each of n-1 rounds relaxes all edges using the previous round's values. Because any simple path has at most n-1 edges, this is guaranteed to find the correct answer even with negative weights.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run Bellman-Ford from source s with the full edge weight list. dist[t] = shortest distance after n-1 iterations. Follow prev[] from t to s for the path. The iter[][] table gives you D(i, v) at any intermediate iteration.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Find cheapest flights where some routes have promotional negative-cost tickets.' or 'Shortest path in a graph where some edges represent discounts (negative cost).'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Edge weights can be negative</li><li>Single source to one or all destinations</li><li>May need to detect negative cycles</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>All positive weights and you need speed — Dijkstra's is much faster</li><li>All-pairs — run Floyd-Warshall instead of Bellman-Ford n times</li></ul></div>
+      </div></div>
+    </div>
+
+    <!-- Floyd-Warshall -->
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Shortest path between EVERY pair of nodes (all-pairs)"</em></div>
+        <div class="pattern-algo">→ Floyd-Warshall</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Floyd-Warshall builds a 2D table iteratively. At iteration k, dist[u][v] = shortest path from u to v using ONLY vertices {1, 2, ..., k} as possible intermediate stops. By iteration n, all vertices are allowed as intermediates, giving all shortest paths. It works with negative weights and handles all-pairs in one O(n³) pass — more efficient than running Bellman-Ford n times (which would be O(n²m)).</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run Floyd-Warshall on the full graph with all edge weights. dist[u][v] gives the answer for any pair. To detect negative cycles: after the run, check if any dist[v][v] < 0. If yes, vertex v is on a negative cycle.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Build a complete distance table between all campus buildings.' or 'Find the shortest route between every pair of data centers.'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Need shortest distances between ALL pairs</li><li>Negative weights may be present</li><li>Want to detect negative cycles anywhere in the graph</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Only one source — Dijkstra's O((n+m)log n) or Bellman-Ford O(nm) are much faster</li><li>Very large sparse graphs — O(n³) becomes too slow</li></ul></div>
+      </div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== CONNECTIVITY ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Connectivity &amp; Reachability Problems <span class="count">3 patterns</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">These problems ask whether nodes are connected, how many separate groups exist, or whether any path exists at all. The direction of edges matters greatly here — undirected vs directed changes which algorithm to use.</p>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Can node A reach node B? Is any path possible?"</em></div>
+        <div class="pattern-algo">→ Breadth-First Search</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>BFS explores all nodes reachable from the starting point. If the destination t is reached, a path exists. BFS also gives you the actual shortest path via prev[], which is a bonus if needed.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run BFS from s. If dist[t] ≠ ∞, then t is reachable from s. Follow prev[t] back to s to get the path. If you only need yes/no reachability and no path, DFS works equally well.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Is warehouse A connected to store B by any road?' or 'Can user A send a message to user B through this network?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Undirected or directed graph</li><li>Only need to know if a path exists (no weights needed)</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>When you need the shortest weighted path — use Dijkstra's</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Find all connected components — how many groups of connected nodes?"</em></div>
+        <div class="pattern-algo">→ Depth-First Search (on undirected graph)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>The outer loop of DFS iterates over all vertices and increments a counter each time it starts a new Explore. Every vertex gets assigned a ccnum equal to the current counter value. After DFS completes, any two vertices with the same ccnum are in the same connected component.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run DFS on the undirected graph WITHOUT specifying a starting vertex (so it runs from all vertices). After DFS, group vertices by their ccnum[] value. The number of distinct ccnum values = number of components.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'How many separate island clusters exist in this archipelago network?' or 'Which servers are isolated from the main cluster?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Undirected graph</li><li>Need to identify groups and count components</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Directed graphs — ccnum[] is UNRELIABLE on directed graphs because direction matters. Use SCC instead.</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Find groups where EVERY node can reach every other node — directed graph"</em></div>
+        <div class="pattern-algo">→ Strongly Connected Components</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>In a directed graph, being in the 'same connected component' requires mutual reachability — you can go from A to B AND from B to A. Regular DFS ccnum only captures one-directional reachability. The SCC algorithm (Kosaraju's) uses two DFS passes on the original and reversed graph to correctly find all maximal mutually-reachable groups.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run SCC on the directed graph. The output G_SCC is the metagraph where each node in V_SCC represents one SCC. Use ccnum[v] from the final DFS to find which SCC any original vertex v belongs to. The metagraph G_SCC is always a DAG.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Find all districts in a one-way road city where you can drive between any two locations.' or 'Find all Twitter user groups where everyone follows everyone else (possibly through intermediaries).'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed graph</li><li>Need mutual reachability groups (can go from A to B AND B to A)</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Undirected graphs — just use DFS with ccnum[]</li></ul></div>
+      </div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== CYCLE DETECTION ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Cycle Detection &amp; Ordering Problems <span class="count">3 patterns</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">These problems involve detecting whether cycles exist, ordering vertices by dependency relationships, or determining whether a valid linear order even exists. The key insight: cycles make topological ordering impossible.</p>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Does this directed graph have a cycle? Is it a valid DAG?"</em></div>
+        <div class="pattern-algo">→ Depth-First Search</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>A directed graph has a cycle if and only if DFS reveals a BACK EDGE — an edge (u, v) where v is an ancestor of u in the current DFS recursion stack. The pre/post timestamps identify this: a back edge u→v satisfies post[u] < post[v] (v is still 'open' when u is discovered). No back edges = no cycles = valid DAG.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run DFS on the directed graph. Inspect the post[] timestamps. For every edge (u, v) in the original graph, check: if post[u] < post[v], that is a back edge — a cycle exists and the graph is NOT a DAG. If all edges satisfy post[u] > post[v], the graph IS a DAG.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Can a student complete all these courses, or do some courses form an impossible prerequisite loop?' or 'Does this build dependency system have a circular dependency?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed graph</li><li>Need to verify if topological sort is even possible before attempting it</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Undirected graphs use a similar principle but back edge identification differs</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Order tasks so that all dependencies come first (scheduling / prerequisites)"</em></div>
+        <div class="pattern-algo">→ Topological Sort</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Topological Sort produces a linear ordering of vertices such that for every directed edge u→v, vertex u appears before v. This is exactly what dependency scheduling requires. Internally, it sorts by decreasing DFS post-order — nodes that finish exploring last (after all their descendants) must be sources and come first in the order.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>First verify the graph is a DAG (no cycles). Run Topological Sort on the directed acyclic graph. The output order[] lists all vertices from sources to sinks. Process tasks in the order given by order[] — all prerequisites of any task have already appeared earlier in the list.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'In what sequence should we compile these modules so no module depends on something not yet compiled?' or 'What order should a student take these courses to always satisfy prerequisites?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Graph MUST be a directed acyclic graph — topological sort is undefined on cyclic graphs</li><li>Edges u→v represent 'u must come before v'</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Cyclic graphs — topological sort is IMPOSSIBLE if any cycle exists</li><li>Undirected graphs</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Find the longest/shortest path through a DAG"</em></div>
+        <div class="pattern-algo">→ Topological Sort + Dynamic Programming</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Once vertices are in topological order, every predecessor of a vertex has already been processed. This means we can safely relax edges in topological order — when we process vertex u, all paths LEADING INTO u are already finalized. This works for any edge weights, including negative, because DAGs have no cycles.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run Topological Sort to get order[]. Initialize dist[s] = 0, all others = ∞ (or -∞ for longest path). Iterate through order[]: for each vertex u in the topological order, for each neighbor v of u, update dist[v] if dist[u] + w(u,v) is better. Follow prev[] from the target to reconstruct the path.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'What is the minimum-cost sequence of tasks to complete a project?' or 'What is the maximum reward achievable by completing tasks in dependency order?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed Acyclic Graph</li><li>Edge weights can be any value — even negative (no cycles means no negative cycle issue)</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Graphs with cycles — use Bellman-Ford for shortest path with negative weights in cyclic graphs</li></ul></div>
+      </div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== MAX FLOW ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Maximum Flow Problems <span class="count">3 patterns</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">Flow problems ask: given a network with capacity limits on edges, what is the maximum TOTAL VOLUME that can be sent from source s to sink t simultaneously? This is NOT about a single best path — it is about routing flow across potentially many paths at once. Think of water flowing through pipes: you want maximum total water throughput.</p>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Maximize total flow from source s to sink t — integer edge capacities"</em></div>
+        <div class="pattern-algo">→ Ford-Fulkerson</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Ford-Fulkerson finds augmenting paths (routes from s to t with remaining capacity) and pushes as much flow as possible through each. It repeats until no augmenting path exists. By the max-flow min-cut theorem, when no augmenting path exists the flow is maximum. The runtime is O(mC) where C is the max flow value — this can be bad for large C.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Build a directed flow graph with positive integer edge capacities. Run Ford-Fulkerson with source s and sink t. Output C = total maximum flow value. Output flow[] tells you exactly how much flow goes through each edge in the optimal solution.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'What is the maximum number of cars per hour that can travel from the highway entrance to the exit?' or 'What is the maximum data throughput from server s to client t?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed graph</li><li>Edge capacities are positive INTEGERS</li><li>Maximum flow value C is not astronomically large (runtime is O(mC))</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Non-integer capacities — Ford-Fulkerson may not terminate. Use Edmonds-Karp.</li><li>When you want a SINGLE path, not total flow — use Dijkstra's or spanning tree methods</li><li>Undirected graphs — must convert to directed first</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Maximize total flow from source s to sink t — any capacities or large values"</em></div>
+        <div class="pattern-algo">→ Edmonds-Karp</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Edmonds-Karp is Ford-Fulkerson but it always uses BFS to find the SHORTEST augmenting path (fewest edges). This small change guarantees polynomial runtime O(nm²) regardless of capacity values — no more risk of non-termination with real-valued or large-integer capacities.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Build a directed flow graph with positive edge capacities. Run Edmonds-Karp with source s and sink t. Outputs are identical to Ford-Fulkerson: flow[] per edge and C = total maximum flow value. Default to Edmonds-Karp when in doubt.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Maximum bandwidth from data center s to user t where link speeds are fractional.' or 'Maximum items that can be shipped through this logistics network per day.'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed graph</li><li>Any positive edge capacities — integer or real-valued</li><li>Need guaranteed polynomial runtime</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>When you need a SINGLE best path — flow algorithms compute total network volume across all paths</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Maximum bipartite matching — pair up two groups optimally"</em></div>
+        <div class="pattern-algo">→ Edmonds-Karp (after building flow network)</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Bipartite matching reduces perfectly to max flow. The maximum number of valid pairings equals the maximum flow through a carefully constructed network. Each matching edge becomes a flow edge of capacity 1, a virtual super-source feeds all left-side nodes, and a virtual super-sink collects from all right-side nodes.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Build directed graph: add super-source s* → each left-side node with capacity 1. Add each right-side node → super-sink t* with capacity 1. Add all bipartite edges left→right with capacity 1. Run Edmonds-Karp from s* to t*. The output flow[] = 1 on matched edges. Total flow C = number of matched pairs.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Assign students to dorm rooms such that maximum students get their preferred room.' or 'Match job applicants to job openings to maximize total assignments.'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Two distinct groups of nodes with edges only between groups (no edges within same group)</li><li>Want to maximize the number of pairings</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Non-bipartite matching — that is a harder problem not covered in this course</li></ul></div>
+      </div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== SPANNING TREE ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Spanning Tree Problems <span class="count">4 patterns</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">Spanning tree problems ask for the cheapest or heaviest set of edges that connects ALL n vertices using exactly n-1 edges with no cycles. A spanning tree ALWAYS includes every single vertex — there is no such thing as a spanning tree that misses a vertex.</p>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Cheapest / minimum cost way to connect all nodes"</em></div>
+        <div class="pattern-algo">→ Kruskal's Algorithm or Prim's Algorithm</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Both algorithms build a Minimum Spanning Tree. Kruskal's sorts all edges by weight and greedily adds cheapest edges that don't form cycles. Prim's grows a tree from one vertex by always picking the cheapest edge connecting the tree to a new vertex. Both are correct and have the same O(m log n) runtime — choose based on which output format you need.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>For Kruskal's: pass in the undirected graph and edge weights → get edges[] list of n-1 MST edges. For Prim's: pass in the undirected graph and edge weights → get prev[] parent pointers. Convert either to an adjacency list if needed: 'Build G_MST from edges[] in O(n+m)' or 'Build G_MST from Prim's prev[] in O(n+m)'.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'What is the cheapest set of cables to install so that every building is connected to the network?' or 'Minimum cost to link all islands with bridges.'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Undirected connected graph</li><li>Edge weights present</li><li>Want to connect ALL vertices at minimum total cost</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Directed graphs</li><li>When you only need one s→t path — spanning tree connects everything, which is more than needed</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Maximize the minimum edge weight on a single path (widest path / bottleneck path)"</em></div>
+        <div class="pattern-algo">→ Kruskal's (negated weights) + BFS</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>A key theorem states: the unique s→t path in the Maximum Spanning Tree is the bottleneck-optimal path in the original graph. To get the Maximum Spanning Tree using Kruskal's (which builds a minimum), negate all weights. The minimum of the negated weights = maximum of original weights. Then BFS finds the unique s→t path in the resulting tree.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Step 1: Create negated weight list: for each edge e, set w'(e) = -w(e). Step 2: Run Kruskal's on the graph with negated weights. Step 3: Convert edges[] to adjacency list G_MST in O(n+m). Step 4: Run BFS from s on G_MST. Step 5: Follow prev[] from t back to s — that is the widest path.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>The Georgia Tech Marathon problem: find the route from Klaus to Skiles where the NARROWEST street is as WIDE as possible, so the most runners can fit.</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Undirected weighted graph</li><li>Single source s and specific destination t</li><li>Want to maximize the bottleneck (minimum width) edge on the chosen path</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Maximum TOTAL flow across all paths — use Ford-Fulkerson or Edmonds-Karp</li><li>Directed graphs — Kruskal's requires undirected graphs</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Need the spanning tree as an edge list (for further graph construction)"</em></div>
+        <div class="pattern-algo">→ Kruskal's Algorithm</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Kruskal's outputs edges[] — a direct list of the n-1 edges in the spanning tree. This is the most natural output if you need to iterate over the tree's edges, compute properties on them, or build a new graph.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run Kruskal's. The edges[] output is ready to use. To build a new adjacency list graph from it: 'Create adjacency list G_MST from Kruskal's edges[] output — this takes O(n+m).'</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>When you need to inspect each tree edge, check edge weights, or feed the tree into another algorithm as a new graph.</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Need the MST as a list of edges</li><li>Plan to iterate over or build from tree edges</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>When you need to trace paths via parent pointers — use Prim's instead</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Need the spanning tree as parent pointers (for path tracing from root)"</em></div>
+        <div class="pattern-algo">→ Prim's Algorithm</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Prim's outputs prev[] — the parent of each vertex in the spanning tree, identical in format to the output of Dijkstra's or BFS. Following prev[v] back to the root traces any tree path, making it convenient for path reconstruction.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run Prim's. Use prev[v] to find each vertex's parent in the MST. To trace the path between two vertices in the MST, follow prev[] backwards from the target.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>When you need to answer 'what is the path from vertex u to vertex v in the MST?' by following parent pointers.</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Need to trace paths within the spanning tree</li><li>Prefer parent-pointer format (same as Dijkstra's output)</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>When you need an edge list — use Kruskal's</li></ul></div>
+      </div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== SCC ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Strongly Connected Component Problems <span class="count">4 patterns</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">SCC problems deal with directed graphs. The SCC algorithm decomposes the graph into maximal groups of mutual reachability and returns a DAG metagraph. KEY: the metagraph is ALWAYS a DAG, sorted in REVERSE topological order (sink SCC comes first).</p>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Find all maximal groups of mutual reachability in a directed graph"</em></div>
+        <div class="pattern-algo">→ Strongly Connected Components</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>The SCC algorithm (Kosaraju's) runs DFS twice — once on the reversed graph to establish a DFS finish order, and once on the original graph in reverse finish order to extract each SCC. The result G_SCC metagraph collapses every SCC into a single supernode and is guaranteed to be a DAG.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run SCC on the directed graph. The output G_SCC = (V_SCC, E_SCC) gives the DAG of SCCs. Each vertex in V_SCC represents one SCC. Use ccnum[v] from the final DFS output to know which SCC any original vertex v belongs to.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Find all groups of cities where you can travel between any two cities using one-way roads.' or 'Identify all user clusters where everyone can message everyone else in a directed social network.'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed graph with potential cycles</li><li>Need to identify mutual reachability groups</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Undirected graphs — just use DFS ccnum[] which is O(n+m) and simpler</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Simplify a directed cyclic graph into a DAG for further algorithm application"</em></div>
+        <div class="pattern-algo">→ Strongly Connected Components</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>The SCC metagraph G_SCC is always a DAG, even if the original graph was full of cycles. Once you have G_SCC, you can safely apply any DAG algorithm: Topological Sort, Dijkstra's, Bellman-Ford, or dynamic programming.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run SCC. Work with G_SCC = (V_SCC, E_SCC) as your new DAG. Apply whatever algorithm you need to G_SCC. Use ccnum[v] to map answers back to original vertices.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'This road network has some two-way districts and some one-way connections. Determine the dependency order of districts.' — first SCC to collapse districts, then Topological Sort on G_SCC.</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed graph with cycles that prevents direct DAG algorithm application</li><li>Need to apply Topological Sort or DAG-based DP to a cyclic graph</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Graph is already a DAG — apply Topological Sort directly without needing SCC</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Find the source SCC — the group that can reach all other SCCs"</em></div>
+        <div class="pattern-algo">→ Strongly Connected Components</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>In the metagraph G_SCC, the source SCC has no incoming edges from other SCCs. Since G_SCC is sorted in REVERSE topological order (sink first, source last), the source SCC appears LAST in V_SCC — OR you can scan G_SCC for the node with no incoming edges.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run SCC. Iterate over V_SCC and E_SCC. The source SCC is the node in V_SCC with no incoming edges in E_SCC (no other SCC has an edge pointing to it). All original vertices with that ccnum value belong to the source SCC.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Which group of servers can send commands to every other server, making it the master control group?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed graph</li><li>Need the 'root' component that everything else depends on or is reachable from</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>When you just need to check if one specific node can reach another — use BFS</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Find the sink SCC — the group that no edge leaves"</em></div>
+        <div class="pattern-algo">→ Strongly Connected Components</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>In the metagraph G_SCC, the sink SCC has no outgoing edges to other SCCs. Since G_SCC is sorted SINK-FIRST (reverse topological order), the FIRST vertex in V_SCC (index 1) is always a sink SCC.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run SCC. The first vertex in V_SCC is a sink SCC. Alternatively, iterate over G_SCC and find any vertex in V_SCC whose adjacency list in E_SCC is empty (no outgoing edges to other SCCs).</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Which group of web pages, once you navigate into them, you can never leave?' or 'Which financial institution receives money but never transfers out?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed graph</li><li>Need the terminal component(s) with no outgoing inter-SCC edges</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>When you need ALL components, not just the sink — run SCC and inspect the full metagraph</li></ul></div>
+      </div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== NEGATIVE WEIGHTS ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Negative Weights &amp; Negative Cycle Detection <span class="count">2 patterns</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">Negative weights require special handling. Dijkstra's FAILS with negative weights. Bellman-Ford and Floyd-Warshall handle them. Negative CYCLES (a cycle where the total weight is negative) are a separate concern — they make shortest paths undefined (you can keep going around the cycle to decrease the path cost infinitely).</p>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Detect if a negative cycle exists reachable from a specific source s"</em></div>
+        <div class="pattern-algo">→ Bellman-Ford</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Bellman-Ford converges after exactly n-1 iterations because any simple path uses at most n-1 edges. If running the n-th iteration STILL decreases any distance, a path of length n exists — which must revisit a vertex — which means it contains a cycle — and since the distance decreased, that cycle has negative total weight.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run Bellman-Ford from source s. After completion, compare iter[n-1][v] vs iter[n][v] for all vertices v. If iter[n][v] < iter[n-1][v] for any vertex v, a negative cycle reachable from s exists.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Does this currency exchange network allow infinite profit by cycling through trades?' (check from a specific starting currency)</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed or undirected graph</li><li>Need to check only from source s, not the entire graph</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Need to find negative cycles anywhere in the graph — use Floyd-Warshall instead</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Detect if ANY negative cycle exists anywhere in the entire graph"</em></div>
+        <div class="pattern-algo">→ Floyd-Warshall</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Floyd-Warshall computes all-pairs shortest paths. After completion, the diagonal dist[v][v] represents the shortest path from v back to itself. If this is negative, v lies on a negative cycle. This checks the entire graph at once, not just from one source.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run Floyd-Warshall on the complete graph with all edge weights. After completion, check every entry dist[v][v] for all vertices v. If any dist[v][v] < 0, that vertex is on a negative cycle.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Does this financial market contain ANY arbitrage opportunity anywhere, starting from any bank?'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Need to check entire graph for negative cycles</li><li>Already need all-pairs distances anyway (no extra cost to check diagonal)</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Only checking from one specific source — Bellman-Ford is faster at O(nm) vs O(n³)</li></ul></div>
+      </div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== MULTI-ALGORITHM ===== -->
+<div class="collapsible">
+  <div class="collapsible-header">
+    <div class="label">Multi-Algorithm Combination Strategies <span class="count">4 patterns</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body"><div class="collapsible-body-inner">
+    <p class="category-intro">Many exam problems require chaining two or more algorithms. You pre-process inputs, run a black box, transform outputs, run another black box. You CANNOT modify any algorithm's internals — only change what you pass in and how you use what comes out.</p>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Widest single path from s to t — maximize the minimum edge weight along the route"</em></div>
+        <div class="pattern-algo">→ Kruskal's (negated weights) + BFS</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>The Maximum Spanning Tree has a provable theorem: the unique s→t path in the Max Spanning Tree is the bottleneck-optimal path in the original graph. Kruskal's gives us the Min Spanning Tree, so we negate weights to get the Max. Then BFS finds the unique s→t path in this tree.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>1) Negate all weights: w'(e) = -w(e). 2) Run Kruskal's with negated weights to get edges[]. 3) Convert edges[] to adjacency list G_MST in O(n+m). 4) Run BFS from s on G_MST. 5) Follow prev[] from t back to s — that is the widest path. The bottleneck is the minimum weight edge on this path.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>Georgia Tech Marathon: route from Klaus to Skiles maximizing the minimum street width so runners can pass.</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Undirected weighted graph</li><li>Single source s and destination t</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Max total flow across all paths — that requires Ford-Fulkerson or Edmonds-Karp</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Shortest path in a DAG — can handle any edge weights including negative"</em></div>
+        <div class="pattern-algo">→ Topological Sort + edge relaxation</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>In a DAG, processing vertices in topological order guarantees that when you process vertex u, ALL paths into u are already finalized. You can relax edges in this order and get correct shortest paths without a priority queue — and negative edge weights are fine because there are no cycles.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run Topological Sort to get order[]. Initialize dist[s]=0, dist[v]=∞ for all other v. For each vertex u in order[] from left to right, for each neighbor v of u, if dist[u] + w(u,v) < dist[v] then update dist[v] and prev[v]. Follow prev[] from t to s for the path.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Minimum cost to schedule manufacturing tasks in dependency order where some task transitions have cost savings (negative weights).'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed Acyclic Graph — absolutely no cycles</li><li>Edge weights can be any value (even negative — no negative cycle risk in a DAG)</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Any graph with cycles — use Bellman-Ford for negative weights, Dijkstra's for positive</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Shortest distance from ANY one of multiple source nodes to all other nodes"</em></div>
+        <div class="pattern-algo">→ Dijkstra's / BFS with virtual super-source</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>Instead of running BFS/Dijkstra n times from each source (O(n·(n+m)log n)), add one virtual super-source connected to every real source with weight 0. A single run from the super-source gives the shortest distance from any real source to every vertex — the virtual node's zero-weight edges don't affect distances.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Add virtual vertex s* to the graph. For each real source vertex v, add edge s*→v with weight 0. Run Dijkstra's from s* (or BFS if unweighted). dist[v] = shortest distance from any real source to vertex v.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Find the nearest hospital to every neighborhood on the map, given that there are 5 hospitals.'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Multiple starting points that are all equally valid</li><li>Want minimum distance to each node across all possible starts</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>When sources have different initial costs — adjust edge weights from s* accordingly</li></ul></div>
+      </div></div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <div class="pattern-prompt">Problem says or implies: <em>"Apply a DAG algorithm to a graph that has cycles"</em></div>
+        <div class="pattern-algo">→ SCC + DAG algorithm on metagraph</div>
+      </div>
+      <div class="pattern-body"><div class="pattern-body-inner">
+        <div class="detail-block why"><h4>Why This Algorithm?</h4><p>The SCC metagraph G_SCC is always a DAG. By collapsing each SCC into a supernode, we eliminate all cycles. Any algorithm that requires a DAG (Topological Sort, DAG-based DP) can then run on G_SCC instead.</p></div>
+        <div class="detail-block how"><h4>How To Apply It</h4><p>Run SCC to get G_SCC = (V_SCC, E_SCC). Apply your DAG algorithm to G_SCC. Use ccnum[v] from the SCC output to map any original vertex to its SCC supernode and interpret results in terms of the original graph.</p></div>
+        <div class="detail-block example"><h4>Real-World Example</h4><p>'Find the topological order of city districts in a road network that has some two-way districts (cycles).'</p></div>
+        <div class="detail-block use-when"><h4>Use When</h4><ul><li>Directed graph with cycles</li><li>Need to apply Topological Sort or DAG DP</li></ul></div>
+        <div class="detail-block do-not"><h4>Do Not Use For</h4><ul><li>Graph is already a DAG — Topological Sort directly, no SCC step needed</li></ul></div>
+      </div></div>
+    </div>
+  </div></div>
+</div>
+
+</div><!-- end tab-pattern -->
+
+<!-- PLACEHOLDER TABS -->
+<div class="tab-content" id="tab-combo"><h1>Combo Patterns</h1><p class="subtitle">Coming soon...</p></div>
+<div class="tab-content" id="tab-lectures"><h1>Lectures</h1><p class="subtitle">Coming soon...</p></div>
+<div class="tab-content" id="tab-pseudocode"><h1>Pseudocode</h1><p class="subtitle">Coming soon...</p></div>
+<div class="tab-content" id="tab-office"><h1>Office Hours</h1><p class="subtitle">Coming soon...</p></div>
+<div class="tab-content" id="tab-visualizations"><h1>Visualizations</h1><p class="subtitle">Coming soon...</p></div>
+<div class="tab-content" id="tab-reference"><h1>Algorithm Reference</h1><p class="subtitle">Coming soon...</p></div>
+<div class="tab-content" id="tab-compare"><h1>Quick Compare</h1><p class="subtitle">Coming soon...</p></div>
+<div class="tab-content" id="tab-tips"><h1>Exam Tips</h1><p class="subtitle">Coming soon...</p></div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Collapsible sections
+document.querySelectorAll('.collapsible-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.parentElement.classList.toggle('open');
+  });
+});
+
+// Pattern expand/collapse
+document.querySelectorAll('.pattern-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.parentElement.classList.toggle('open');
+  });
+});
+</script>
+</body>
+</html>
