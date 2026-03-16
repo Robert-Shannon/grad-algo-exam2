@@ -1,0 +1,179 @@
+<h1>Quick Facts</h1>
+<p class="subtitle">Brain dump this at the start of the exam. Key facts to memorize cold.</p>
+
+<!-- DECISION TREE -->
+<div class="section-title">Which Shortest Path Algorithm?</div>
+<div class="table-scroll"><table>
+  <tr><th>Question</th><th>Answer</th></tr>
+  <tr><td>All weights >= 0, one source?</td><td style="color:var(--accent);font-weight:700">Dijkstra's</td></tr>
+  <tr><td>Negative weights possible, one source?</td><td style="color:var(--accent);font-weight:700">Bellman-Ford</td></tr>
+  <tr><td>Need all pairs?</td><td style="color:var(--accent);font-weight:700">Floyd-Warshall</td></tr>
+  <tr><td>Unweighted graph (hops only)?</td><td style="color:var(--accent);font-weight:700">BFS</td></tr>
+  <tr><td>Negative cycle from one source?</td><td style="color:var(--accent);font-weight:700">Bellman-Ford (iter[n] vs iter[n-1])</td></tr>
+  <tr><td>Negative cycle anywhere in graph?</td><td style="color:var(--accent);font-weight:700">Floyd-Warshall (dist[v][v] &lt; 0)</td></tr>
+  <tr><td>Any cycle at all (not negative)?</td><td style="color:var(--accent);font-weight:700">DFS (back edge = cycle)</td></tr>
+</table></div>
+
+<!-- OUTPUT VARIABLES -->
+<div class="section-title">What Each Output Variable Means</div>
+<div class="table-scroll"><table>
+  <tr><th>Variable</th><th>Algorithm(s)</th><th>What It Is</th></tr>
+  <tr><td>dist[]</td><td>BFS, Dijkstra's, Bellman-Ford</td><td>Shortest distance from source s to every vertex. One number per vertex.</td></tr>
+  <tr><td>dist[][]</td><td>Floyd-Warshall</td><td>Shortest distance from every vertex to every other vertex. dist[u][v] = shortest u to v.</td></tr>
+  <tr><td>prev[]</td><td>BFS, DFS, Dijkstra's, Bellman-Ford, Prim's</td><td>Parent pointer. Follow prev[] backwards from t to s to reconstruct the path. O(n).</td></tr>
+  <tr><td>ccnum[]</td><td>DFS, SCC</td><td>Connected component number. Vertices with same ccnum are in the same component.</td></tr>
+  <tr><td>pre[]</td><td>DFS</td><td>Pre-visit timestamp. When DFS first discovered the vertex.</td></tr>
+  <tr><td>post[]</td><td>DFS</td><td>Post-visit timestamp. When DFS finished exploring the vertex. THE IMPORTANT ONE.</td></tr>
+  <tr><td>order[]</td><td>Topo Sort</td><td>Vertices listed so all edges go left to right. Sources first, sinks last.</td></tr>
+  <tr><td>G_SCC</td><td>SCC</td><td>The metagraph. A new, smaller adjacency list. Always a DAG.</td></tr>
+  <tr><td>edges[]</td><td>Kruskal's</td><td>List of n-1 edges in the MST. Must convert to adjacency list before BFS/DFS.</td></tr>
+  <tr><td>iter[i][v]</td><td>Bellman-Ford</td><td>Shortest distance from s to v using at most i edges. dist[] = iter[n-1].</td></tr>
+  <tr><td>iter[k][u][v]</td><td>Floyd-Warshall</td><td>Shortest distance from u to v using only vertices {1..k} as intermediates. dist[][] = iter[n].</td></tr>
+  <tr><td>flow[], C</td><td>Ford-Fulkerson, Edmonds-Karp</td><td>Flow on each edge, and C = total max flow value.</td></tr>
+  <tr><td>assignments[]</td><td>2-SAT</td><td>True/false value for each variable, or "no solution."</td></tr>
+</table></div>
+
+<!-- CYCLE DETECTION -->
+<div class="section-title">Cycle Detection</div>
+<div class="table-scroll"><table>
+  <tr><th>Type</th><th>How</th><th>Details</th></tr>
+  <tr><td>Any cycle (directed)</td><td>DFS</td><td>Back edge exists iff post[u] &lt; post[v] for edge u->v</td></tr>
+  <tr><td>Negative cycle from source s</td><td>Bellman-Ford</td><td>If iter[n] differs from iter[n-1], negative cycle reachable from s</td></tr>
+  <tr><td>Negative cycle anywhere</td><td>Floyd-Warshall</td><td>If any dist[v][v] &lt; 0, negative cycle exists through v</td></tr>
+  <tr><td>No cycle (verify DAG)</td><td>DFS</td><td>No back edges found = DAG. Safe to run Topo Sort.</td></tr>
+</table></div>
+
+<!-- DFS EDGE CLASSIFICATION -->
+<div class="section-title">DFS Edge Classification (directed graphs)</div>
+<div class="table-scroll"><table>
+  <tr><th>Edge Type</th><th>post[] rule</th><th>pre[] rule</th><th>Meaning</th></tr>
+  <tr><td style="color:var(--green)">Tree edge</td><td>post[u] > post[v]</td><td>pre[u] &lt; pre[v]</td><td>DFS used this edge to discover v. u is v's direct parent.</td></tr>
+  <tr><td style="color:var(--cyan)">Forward edge</td><td>post[u] > post[v]</td><td>pre[u] &lt; pre[v]</td><td>v is descendant of u but was already discovered via another path.</td></tr>
+  <tr><td style="color:var(--yellow)">Cross edge</td><td>post[u] > post[v]</td><td>pre[u] > pre[v]</td><td>v was fully explored before u even started. Different branch.</td></tr>
+  <tr><td style="color:var(--red)">Back edge</td><td>post[u] &lt; post[v]</td><td>pre[u] > pre[v]</td><td>v is ancestor of u. CYCLE EXISTS.</td></tr>
+</table></div>
+
+<!-- ccnum RULES -->
+<div class="section-title">ccnum[] Rules</div>
+<div class="table-scroll"><table>
+  <tr><th>Graph Type</th><th>ccnum Meaning</th><th>Reliable?</th></tr>
+  <tr><td>Undirected</td><td>Same ccnum = same connected component = can reach each other</td><td style="color:var(--green)">YES</td></tr>
+  <tr><td>Directed (from DFS)</td><td>Meaningless for reachability</td><td style="color:var(--red)">NO - use SCC instead</td></tr>
+  <tr><td>Directed (from SCC)</td><td>Same ccnum = same SCC = mutually reachable</td><td style="color:var(--green)">YES</td></tr>
+</table></div>
+
+<!-- SCC FACTS -->
+<div class="section-title">SCC Key Facts</div>
+<div class="table-scroll"><table>
+  <tr><th>Fact</th><th>Detail</th></tr>
+  <tr><td>G_SCC is always a DAG</td><td>Can run Topo Sort or DP on it directly</td></tr>
+  <tr><td>ccnum label 1 = sink SCC</td><td>First SCC found during second DFS is a sink</td></tr>
+  <tr><td>Highest ccnum = source SCC</td><td>Last SCC found is a source</td></tr>
+  <tr><td>Source SCC</td><td>No incoming edges in G_SCC (in-degree 0)</td></tr>
+  <tr><td>Sink SCC</td><td>No outgoing edges in G_SCC (empty adjacency list)</td></tr>
+  <tr><td>Unique source SCC</td><td>If only one meta-node has in-degree 0, any vertex in it can reach all others</td></tr>
+</table></div>
+
+<!-- TOPO SORT -->
+<div class="section-title">Topo Sort Facts</div>
+<div class="table-scroll"><table>
+  <tr><th>Fact</th><th>Detail</th></tr>
+  <tr><td>Only works on DAGs</td><td>Check for cycles with DFS first if unsure</td></tr>
+  <tr><td>order[] = decreasing post order</td><td>Highest post number first</td></tr>
+  <tr><td>Sources first, sinks last</td><td>All edges go left to right in the ordering</td></tr>
+  <tr><td>Process backwards for DP</td><td>Sinks have no neighbors, so start there and work toward sources</td></tr>
+  <tr><td>Unique topo sort iff Hamiltonian path</td><td>Path touching all vertices exists iff only one valid ordering</td></tr>
+</table></div>
+
+<!-- MAX FLOW FACTS -->
+<div class="section-title">Max Flow Key Facts</div>
+<div class="table-scroll"><table>
+  <tr><th>Fact</th><th>Detail</th></tr>
+  <tr><td>Max-Flow = Min-Cut</td><td>The maximum flow always equals the minimum cut capacity</td></tr>
+  <tr><td>No flow can exceed any cut</td><td>For any flow f and any cut (L,R): size(f) &le; cap(L,R)</td></tr>
+  <tr><td>Min cut = split vertices into L and R</td><td>s in L, t in R. Cut capacity = sum of edges from L to R.</td></tr>
+  <tr><td>Residual graph = original graph</td><td>Means flow is zero (no flow sent on any edge)</td></tr>
+  <tr><td>No s-t path in residual graph</td><td>Current flow is maximum (algorithm terminates)</td></tr>
+  <tr><td>Ford-Fulkerson: O(mC)</td><td>C = max flow value. Requires integer capacities. Can be slow.</td></tr>
+  <tr><td>Edmonds-Karp: O(nm&sup2;)</td><td>Uses BFS for augmenting paths. Works with any positive capacities.</td></tr>
+  <tr><td>Augmenting along a path</td><td>Send flow = min capacity along the path. At least one edge saturates per round.</td></tr>
+</table></div>
+
+<!-- SPANNING TREE -->
+<div class="section-title">Spanning Tree Facts</div>
+<div class="table-scroll"><table>
+  <tr><th>Fact</th><th>Detail</th></tr>
+  <tr><td>MST includes all n vertices</td><td>Exactly n-1 edges, connected, no cycles</td></tr>
+  <tr><td>Cut property</td><td>Lightest edge across any cut must be in MST</td></tr>
+  <tr><td>Every MST edge is lightest across some cut</td><td>Remove it, tree splits into two groups = that's the cut</td></tr>
+  <tr><td>Distinct weights = unique MST</td><td>No ties means only one possible MST</td></tr>
+  <tr><td>Max spanning tree</td><td>Negate all weights, run Kruskal's</td></tr>
+  <tr><td>Bottleneck / widest path</td><td>Path from s to t in MST minimizes the heaviest edge</td></tr>
+  <tr><td>Kruskal's output = edges[]</td><td>Must convert to adjacency list before BFS/DFS</td></tr>
+  <tr><td>Prim's output = prev[]</td><td>Parent pointers, like Dijkstra's output</td></tr>
+</table></div>
+
+<!-- 10 CORE TRANSFORMATIONS -->
+<div class="section-title">10 Core Input Transformations</div>
+<div class="table-scroll"><table>
+  <tr><th>#</th><th>Transformation</th><th>What It Does</th><th>Example Use</th></tr>
+  <tr><td>1</td><td>Negate weights</td><td>Turn max into min</td><td>Max spanning tree = negate + Kruskal's</td></tr>
+  <tr><td>2</td><td>Add virtual node</td><td>Collapse multi-source/sink</td><td>Multiple sources -> super-source with 0-weight edges</td></tr>
+  <tr><td>3</td><td>Split each vertex</td><td>Model per-vertex capacity</td><td>Vertex-disjoint paths via max flow</td></tr>
+  <tr><td>4</td><td>Reverse all edges</td><td>Flip reachability direction</td><td>Dist from everything to t = reverse + Dijkstra's from t</td></tr>
+  <tr><td>5</td><td>Build layered graph</td><td>Track state + location</td><td>"Used coupon yet?" = two-layer graph</td></tr>
+  <tr><td>6</td><td>Take -log(weight)</td><td>Multiplicative -> additive</td><td>Currency exchange = -log + Bellman-Ford</td></tr>
+  <tr><td>7</td><td>Remove forbidden nodes</td><td>Force path to avoid vertices</td><td>Delete nodes + run Dijkstra's/BFS</td></tr>
+  <tr><td>8</td><td>SCC condensation</td><td>Collapse cycles -> DAG</td><td>Run DAG algorithms on cyclic directed graphs</td></tr>
+  <tr><td>9</td><td>Convert MST to adj list</td><td>Allow BFS/DFS on tree</td><td>Kruskal's edges[] -> adjacency list -> BFS</td></tr>
+  <tr><td>10</td><td>Set capacity = 1</td><td>Count disjoint paths</td><td>Edge-disjoint paths = max flow with unit capacities</td></tr>
+</table></div>
+
+<!-- COMMON TRAPS -->
+<div class="section-title">Common Traps</div>
+<div class="table-scroll"><table>
+  <tr><th style="color:var(--red)">Trap</th><th>Why It's Wrong</th></tr>
+  <tr><td>Dijkstra's with negative weights</td><td>Dijkstra's FAILS. Use Bellman-Ford instead.</td></tr>
+  <tr><td>ccnum[] on directed graph (from DFS)</td><td>Useless for reachability. Use SCC.</td></tr>
+  <tr><td>Topo Sort on cyclic graph</td><td>Only works on DAGs. Run SCC first to collapse cycles.</td></tr>
+  <tr><td>Ford-Fulkerson with non-integer capacities</td><td>May not terminate. Use Edmonds-Karp instead.</td></tr>
+  <tr><td>Modifying a black box internally</td><td>Never modify algorithm internals. Only modify input/output.</td></tr>
+  <tr><td>Writing pseudocode on the exam</td><td>Serious point deduction. Write English narrative only.</td></tr>
+  <tr><td>Forgetting to convert Kruskal's edges[] to adj list</td><td>Can't run BFS/DFS on an edge list. Convert first, O(n).</td></tr>
+  <tr><td>Adding constant to all edges to fix negative weights</td><td>Does NOT work. Changes which path is shortest.</td></tr>
+  <tr><td>dist[v][v] can be positive</td><td>It's always 0 (no neg cycle) or negative (neg cycle). Never positive.</td></tr>
+</table></div>
+
+<!-- RUNTIME REFERENCE -->
+<div class="section-title">Runtime Quick Reference</div>
+<div class="table-scroll"><table>
+  <tr><th>Algorithm</th><th>Runtime</th><th>Memory Aid</th></tr>
+  <tr><td>DFS, BFS, Topo Sort, SCC, 2-SAT</td><td>O(n+m)</td><td>Linear — just traversal</td></tr>
+  <tr><td>Dijkstra's, Kruskal's, Prim's</td><td>O((n+m) log n) or O(m log n)</td><td>Traversal + priority queue/sorting</td></tr>
+  <tr><td>Bellman-Ford</td><td>O(nm)</td><td>n iterations, each scans m edges</td></tr>
+  <tr><td>Floyd-Warshall</td><td>O(n&sup3;)</td><td>Triple nested loop over all vertices</td></tr>
+  <tr><td>Ford-Fulkerson</td><td>O(mC)</td><td>C = max flow. Depends on capacity values.</td></tr>
+  <tr><td>Edmonds-Karp</td><td>O(nm&sup2;)</td><td>At most mn rounds, BFS each round is O(m)</td></tr>
+</table></div>
+
+<!-- EXAM ANSWER FORMAT -->
+<div class="section-title">Exam Answer Format</div>
+<div class="table-scroll"><table>
+  <tr><th>Part</th><th>What to Write</th></tr>
+  <tr><td style="color:var(--green);font-weight:700">Part (a): Algorithm</td><td>English narrative. Describe: input modifications, which black box, what outputs you use, any post-processing, final answer. NO PSEUDOCODE.</td></tr>
+  <tr><td style="color:var(--yellow);font-weight:700">Part (b): Correctness</td><td>Why your approach is correct. Reference algorithm guarantees.</td></tr>
+  <tr><td style="color:var(--cyan);font-weight:700">Part (c): Runtime</td><td>O-notation for every step. One simplified final O.</td></tr>
+  <tr><td style="color:var(--red);font-weight:700">Path reconstruction</td><td>Always say "Follow prev[] backwards from t to s in O(n)."</td></tr>
+</table></div>
+
+<!-- GRAPH OPERATIONS -->
+<div class="section-title">Common Graph Operations (all O(n+m))</div>
+<div class="table-scroll"><table>
+  <tr><th>Operation</th><th>Runtime</th></tr>
+  <tr><td>Reversing a graph (flip all edges)</td><td>O(n+m)</td></tr>
+  <tr><td>Copying a graph</td><td>O(n+m)</td></tr>
+  <tr><td>Building a subgraph</td><td>O(n+m)</td></tr>
+  <tr><td>Converting edge list to adjacency list</td><td>O(n+m)</td></tr>
+  <tr><td>Scanning an adjacency list</td><td>O(n+m)</td></tr>
+  <tr><td>Removing a set of vertices/edges</td><td>O(n+m)</td></tr>
+</table></div>
